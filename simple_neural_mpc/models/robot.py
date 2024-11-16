@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 from matplotlib.axes import Axes
-from utils.fancy_vector import FancyVector
+
+from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 
 class Robot(ABC):

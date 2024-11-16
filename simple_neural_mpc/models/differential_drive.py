@@ -3,9 +3,10 @@ import numpy as np
 from casadi import cos, sin
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from models.robot import Robot
-from utils.common_utils import wrap
-from utils.fancy_vector import FancyVector
+
+from simple_neural_mpc.models.robot import Robot
+from simple_neural_mpc.utils import wrap
+from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 
 class DifferentialDrive(Robot):

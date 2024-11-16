@@ -1,11 +1,12 @@
 import numpy as np
 from casadi import cos, sin
-from controllers.controller import Controller
-from models.differential_drive import (
+
+from simple_neural_mpc.controllers.controller import Controller
+from simple_neural_mpc.models.differential_drive import (
     DifferentialDrive,
     DifferentialDriveAction,
 )
-from utils.trajectory import Trajectory
+from simple_neural_mpc.utils.trajectory import Trajectory
 
 
 class FBL(Controller):

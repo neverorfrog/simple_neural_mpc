@@ -4,13 +4,14 @@ from itertools import count, cycle
 
 import matplotlib.pyplot as plt
 import numpy as np
-from controllers.controller import Controller
 from matplotlib.animation import FuncAnimation
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.gridspec import GridSpec
-from models.robot import Robot
-from utils import project_root
-from utils.trajectory import Trajectory
+
+from simple_neural_mpc.controllers.controller import Controller
+from simple_neural_mpc.models.robot import Robot
+from simple_neural_mpc.utils import project_root
+from simple_neural_mpc.utils.trajectory import Trajectory
 
 
 class TrajectoryTrackingSimulation:
