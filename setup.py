@@ -16,7 +16,7 @@ setup(
     author="Your Name",
     author_email="your.email@example.com",
     description="A neural network for trajectory tracking",
-    url="https://github.com/yourusername/trajectory-tracking-neural-network",
+    url="https://github.com/neverorfrog/simple_neural_mpc.git",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
