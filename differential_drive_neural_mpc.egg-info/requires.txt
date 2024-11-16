@@ -1,7 +1,0 @@
-casadi
-matplotlib
-numpy
-omegaconf
-pyyaml
-pyqt5
-scipy

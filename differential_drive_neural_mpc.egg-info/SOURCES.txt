@@ -1,7 +1,0 @@
-README.md
-setup.py
-differential_drive_neural_mpc.egg-info/PKG-INFO
-differential_drive_neural_mpc.egg-info/SOURCES.txt
-differential_drive_neural_mpc.egg-info/dependency_links.txt
-differential_drive_neural_mpc.egg-info/requires.txt
-differential_drive_neural_mpc.egg-info/top_level.txt
