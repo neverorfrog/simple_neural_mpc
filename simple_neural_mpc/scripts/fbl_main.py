@@ -26,4 +26,4 @@ if __name__ == "__main__":
     simulation = TrajectoryTrackingSimulation(
         "boh", robot, controller, reference
     )
-    simulation.run(N=50, animate=True, save=True)
+    simulation.run(N=50, animate=True, save=False)

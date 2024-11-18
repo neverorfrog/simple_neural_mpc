@@ -184,7 +184,7 @@ class TrajectoryTrackingSimulation:
             ax_small3.axis((0, time[-1], -error_max * 1.1, error_max * 1.1))
             ax_small3.plot(
                 time[:i],
-                error_traj[:i, :],
+                error_traj[:i],
                 "-",
                 alpha=0.7,
                 label=["e_x", "e_y"],

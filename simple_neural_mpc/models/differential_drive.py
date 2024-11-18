@@ -27,17 +27,22 @@ class DifferentialDrive(Robot):
         # input variables
         v, w = self.input.variables
 
+        # ODE
         x_dot = v * ca.cos(psi)
         y_dot = v * ca.sin(psi)
         psi_dot = w
         t_dot = 1
+
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot, t_dot)
+
         ode = ca.Function(
             "ode", [self.state.syms, self.input.syms], [state_dot]
         )
+
         integrator = self.integrate(
             self.state.syms, self.input.syms, ode, self.dt
         )
+
         self._transition = ca.Function(
             "transition", [self.state.syms, self.input.syms], [integrator]
         )
