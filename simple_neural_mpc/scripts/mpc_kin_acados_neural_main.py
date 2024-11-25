@@ -24,18 +24,18 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 class PyTorchModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.input_layer = torch.nn.Linear(3, 64)
-        self.hidden_layer = torch.nn.Linear(64, 64)
-        self.output_layer = torch.nn.Linear(64, 3)
+        # self.input_layer = torch.nn.Linear(3, 64)
+        # self.hidden_layer = torch.nn.Linear(64, 64)
+        # self.output_layer = torch.nn.Linear(64, 3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.T  #! input has to be a column vector
-        x = self.input_layer(x)
-        x = torch.relu(x)
-        x = self.hidden_layer(x)
-        x = torch.relu(x)
-        x = self.output_layer(x)
-        x = x.T  #! output has to be a column vector
+        # x = x.T  #! input has to be a column vector
+        # x = self.input_layer(x)
+        # x = torch.relu(x)
+        # x = self.hidden_layer(x)
+        # x = torch.relu(x)
+        # x = self.output_layer(x)
+        # x = x.T  #! output has to be a column vector
         return x
 
 
