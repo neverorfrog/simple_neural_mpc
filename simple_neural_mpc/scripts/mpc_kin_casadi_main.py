@@ -1,18 +1,20 @@
-import numpy as np
-
 from simple_neural_mpc.utils import load_config, project_root
-from simple_neural_mpc.utils.configuration import UnicycleConfig
+from simple_neural_mpc.utils.configuration import (
+    UnicycleConfig,
+    KinModelPredictiveControllerConfig,
+)
 
 from simple_neural_mpc.utils.trajectory import Circle
 
 from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import Unicycle
 
-from simple_neural_mpc.controllers import DFBL
+from simple_neural_mpc.controllers.mpc.mpc_kin_casadi import ModelPredictiveController as CasadiMPC
+
 from simple_neural_mpc.simulation.trajectory_tracking import TrajectoryTrackingSimulation
 
 
 if __name__ == "__main__":
-    reference = Circle()
+    reference = Circle(freq=0.2)
     root = project_root()
 
     # Bicycle model and corresponding controller
@@ -20,11 +22,17 @@ if __name__ == "__main__":
         f"{root}/config/models/unicycle.yaml",
         UnicycleConfig,
     )
+
+    controller_config = load_config(
+        f"{root}/config/controllers/mpc_kin.yaml",
+        KinModelPredictiveControllerConfig,
+    )
+
+    print(controller_config)
+
     robot = Unicycle(config=robot_config)
-    robot.input.v = 0.1
-    # controller = FBL(kp=np.array([1,1]),kd=np.array([1,1]))
-    controller = DFBL(kp=np.array([5, 5]), kd=np.array([2, 2]))
+    controller = CasadiMPC(robot, controller_config)
 
     # Simulation
-    simulation = TrajectoryTrackingSimulation("fbl", robot, controller, reference)
+    simulation = TrajectoryTrackingSimulation("mpc_kin_casadi", robot, controller, reference)
     simulation.run(N=500, animate=True, save=False)

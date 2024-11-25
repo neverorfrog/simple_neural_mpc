@@ -2,10 +2,10 @@ import casadi as ca
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
 import numpy as np
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.models.differential_drive_kin_acados import (
-    DifferentialDrive,
-    DifferentialDriveAction,
-    DifferentialDriveState,
+from simple_neural_mpc.models.unicycle_kin.unicycle_kin_acados import (
+    Unicycle,
+    UnicycleAction,
+    UnicycleState,
 )
 from simple_neural_mpc.utils.configuration import (
     KinModelPredictiveControllerConfig,
@@ -15,7 +15,7 @@ from simple_neural_mpc.utils.trajectory import Trajectory
 np.random.seed(31)
 
 class ModelPredictiveController(Controller):
-    def __init__(self, robot: DifferentialDrive, config: KinModelPredictiveControllerConfig):
+    def __init__(self, robot: Unicycle, config: KinModelPredictiveControllerConfig):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
@@ -52,9 +52,6 @@ class ModelPredictiveController(Controller):
         # Constraints
         x_0, y_0, psi_0 = self.robot.state.values
         self.ocp.constraints.x0 = np.array([x_0, y_0, psi_0])
-        # self.ocp.constraints.lbu = np.array([-self.config.input_constraints.v_max, -self.config.input_constraints.w_max])
-        # self.ocp.constraints.ubu = np.array([self.config.input_constraints.v_max, self.config.input_constraints.w_max])
-        # self.ocp.constraints.idxbu = np.array([0, 0])
         
         # Reference
         self.ocp.cost.yref = np.zeros((self.n_opt))
@@ -86,9 +83,7 @@ class ModelPredictiveController(Controller):
     def _init_integrator(self) -> None:
         self.integrator = AcadosSimSolver(self.ocp)
         
-    def command(self, robot: DifferentialDrive, reference: Trajectory):
-        # self._init_horizon(robot.state)
-
+    def command(self, robot: Unicycle, reference: Trajectory):
         # generate trajectory for next N steps
         t = np.linspace(
             self.k * self.config.dt,
@@ -109,7 +104,7 @@ class ModelPredictiveController(Controller):
         # Solve the optimization problem
         action = self.solver.solve_for_x0(robot.state.values)
         print(action)
-        action = DifferentialDriveAction(v = action[0], w = action[1])
+        action = UnicycleAction(v = action[0], w = action[1])
         robot.input = action
         
         next_state = self.integrator.simulate(robot.state.values, action.values)
@@ -122,23 +117,3 @@ class ModelPredictiveController(Controller):
         print("")
         
         return action, next_state, pos, error
-
-    # def _init_horizon(self, state: DifferentialDriveState):
-    #     # initial state
-    #     state = state.values.squeeze()
-    #     self.opti.set_value(self.state0, state)
-
-    #     # initializing state and action prediction
-    #     self.opti.set_initial(self.action, self.action_prediction)
-    #     self.opti.set_initial(self.state, self.state_prediction)
-
-    # def _unpack_state(self, state: np.ndarray):
-    #     x = state[self.robot.state.index("x")]
-    #     y = state[self.robot.state.index("y")]
-    #     psi = state[self.robot.state.index("psi")]
-    #     return x, y, psi
-
-    # def _unpack_action(self, action: np.ndarray):
-    #     v = action[self.robot.input.index("v")]
-    #     w = action[self.robot.input.index("w")]
-    #     return v, w

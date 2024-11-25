@@ -1,9 +1,9 @@
 import numpy as np
 from casadi import cos, sin
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.models.differential_drive_kin import (
-    DifferentialDrive,
-    DifferentialDriveAction,
+from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import (
+    Unicycle,
+    UnicycleAction,
 )
 from simple_neural_mpc.utils.trajectory import Trajectory
 
@@ -14,7 +14,7 @@ class FBL(Controller):
         self.kd = kd
         self.b = b
 
-    def command(self, robot: DifferentialDrive, reference: Trajectory):
+    def command(self, robot: Unicycle, reference: Trajectory):
         state = robot.state
         # point at distance b from center
         x_b = state.x + self.b * cos(state.psi)
@@ -35,5 +35,9 @@ class FBL(Controller):
         )
 
         action = np.matmul(inverse_decoupling_matrix, u_io)
+        action = UnicycleAction(action[0], action[1])
+        next_state = robot.transition(robot.state.values, action.values).full().squeeze()
+        next_state = robot.__class__.create_state(*next_state)
+        robot.state = next_state
 
-        return DifferentialDriveAction(action[0], action[1]), ref["p"], e_p
+        return action, next_state, ref["p"], e_p

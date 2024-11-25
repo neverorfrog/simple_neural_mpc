@@ -53,7 +53,10 @@ class TrajectoryTrackingSimulation:
             # logging
             state_traj.append(state)
             action_traj.append(action)
-            ref_traj.append(ref[:,0])
+            if len(ref.shape) > 1:
+                ref_traj.append(ref[:,0])
+            else:
+                ref_traj.append(ref)
             error_traj.append(error)
             elapsed.append(elapsed_time)
 

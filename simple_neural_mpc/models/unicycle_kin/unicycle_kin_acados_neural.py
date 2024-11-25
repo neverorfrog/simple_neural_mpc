@@ -1,23 +1,25 @@
 import casadi as ca
 import numpy as np
 from matplotlib.axes import Axes
+import torch
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 from simple_neural_mpc.utils.plotting import plot_wheeled_robot
 from acados_template import AcadosModel
+import l4casadi as l4c
 
 
-class DifferentialDrive(Robot):
+class Unicycle(Robot):
 
     @classmethod
     def create_state(cls, *args, **kwargs):
-        return DifferentialDriveState(*args, **kwargs)
+        return UnicycleState(*args, **kwargs)
 
     @classmethod
     def create_action(cls, *args, **kwargs):
-        return DifferentialDriveAction(*args, **kwargs)
+        return UnicycleAction(*args, **kwargs)
 
-    def _init_model(self):
+    def _init_model(self, neural_network: torch.nn.Module = None):
         model_name = "kinematic_differential_drive"
 
         # state variables
@@ -29,50 +31,47 @@ class DifferentialDrive(Robot):
         control = ca.vertcat(v, w)
         
         # state dot variables
-        x_dot, y_dot, psi_dot = ca.SX.sym("x_dot"), ca.SX.sym("y_dot"), ca.SX.sym("psi_dot")
+        x_dot, y_dot, psi_dot = ca.MX.sym("x_dot"), ca.MX.sym("y_dot"), ca.MX.sym("psi_dot")
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
+        
+        # l4casadi model
+        self.l4casadi_model = l4c.L4CasADi(neural_network, name=model_name)
+        neural_dyn = self.l4casadi_model(state) # neural network approximated dynamics (MX)
 
         # Explicit ODE
         x_dot = v * ca.cos(psi)
         y_dot = v * ca.sin(psi)
         psi_dot = w
-        f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
+        f_expl = ca.vertcat(x_dot, y_dot, psi_dot) + neural_dyn
         
         # Implicit ODE
-        f_impl = state_dot - f_expl
+        f_impl = state_dot - f_expl    
         
         # Create acados model
-        self.model = AcadosModel()
-        self.model.name = model_name
-        self.model.f_expl_expr = f_expl
-        self.model.f_impl_expr = f_impl
-        self.model.x = state
-        self.model.xdot = state_dot
-        self.model.u = control
-        self.model.t_label = "$t$ [s]"
-        self.model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
-        self.model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
+        model = AcadosModel()
+        model.name = model_name
+        model.f_expl_expr = f_expl
+        model.f_impl_expr = f_impl
+        model.x = state
+        model.xdot = state_dot
+        model.u = control
+        model.z = ca.vertcat([])
+        model.p = ca.vertcat([])
+        model.t_label = "$t$ [s]"
+        model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
+        model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
+        self.model = model
         
-
-    def drive(self, input: FancyVector):
-        """
-        :param input: vector of inputs
-        """
-        next_state = self.transition(self.state.values, input.values)
-        self.state = self.__class__.create_state(*next_state)
-        self.input = input
-        return self.state
-
     @property
     def transition(self):
-        return self._transition
+        pass
 
     def plot(self, axis: Axes, state):
         x, y, psi = state
         plot_wheeled_robot(axis, x, y, psi)
 
 
-class DifferentialDriveAction(FancyVector):
+class UnicycleAction(FancyVector):
     def __init__(self, v=0.0, w=0.0):
         """
         :param a: longitudinal acceleration | [m/s^2]
@@ -81,7 +80,7 @@ class DifferentialDriveAction(FancyVector):
         self._values = np.array([v, w])
         self._keys = ["v", "w"]
         self._syms = ca.vertcat(
-            *[ca.SX.sym(self._keys[i]) for i in range(len(self._keys))]
+            *[ca.MX.sym(self._keys[i]) for i in range(len(self._keys))]
         )
 
     @property
@@ -103,7 +102,7 @@ class DifferentialDriveAction(FancyVector):
         self.values[1] = value
 
 
-class DifferentialDriveState(FancyVector):
+class UnicycleState(FancyVector):
     def __init__(self, x=0.0, y=0.0, psi=0.0, t=0.0):
         """
         :param x: x coordinate | [m]
@@ -113,7 +112,7 @@ class DifferentialDriveState(FancyVector):
         self._values = np.array([x, y, psi])
         self._keys = ["x", "y", "psi"]
         self._syms = ca.vertcat(
-            *[ca.SX.sym(self._keys[i]) for i in range(len(self._keys))]
+            *[ca.MX.sym(self._keys[i]) for i in range(len(self._keys))]
         )
 
     @property

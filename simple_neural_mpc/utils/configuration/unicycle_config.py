@@ -7,6 +7,6 @@ class Car:
     l: float = MISSING
     
 @dataclass
-class DifferentialDriveConfig:
+class UnicycleConfig:
     dt: float = MISSING
     car: Car = field(default_factory=Car)

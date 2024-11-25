@@ -5,7 +5,7 @@ from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 
 class Robot(ABC):
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, *args, **kwargs):
         # Set sampling time
         self.dt = config["dt"]
         # Configuration
@@ -15,10 +15,10 @@ class Robot(ABC):
         # Initialize input
         self.input: FancyVector = self.__class__.create_action()
         # Initialize ode
-        self._init_model()
+        self._init_model(*args, **kwargs)
 
     @abstractmethod
-    def _init_model(self):
+    def _init_model(self, *args, **kwargs):
         """Initializes the casadi transition function responsible for evolving the state of the robot"""
         pass
 

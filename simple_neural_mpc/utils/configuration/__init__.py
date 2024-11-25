@@ -1,7 +1,6 @@
-from .differential_drive_config import DifferentialDriveConfig
+from .unicycle_config import UnicycleConfig
 from .mpc_dyn_config import ModelPredictiveControllerConfig as DynModelPredictiveControllerConfig
 from .mpc_kin_config import ModelPredictiveControllerConfig as KinModelPredictiveControllerConfig
-from .mpc_kin_acados_config import ModelPredictiveControllerConfig as KinModelPredictiveControllerAcadosConfig
 
 
-__all__ = ["DifferentialDriveConfig", "DynModelPredictiveControllerConfig", "KinModelPredictiveControllerConfig", "KinModelPredictiveControllerAcadosConfig"]
+__all__ = ["UnicycleConfig", "DynModelPredictiveControllerConfig", "KinModelPredictiveControllerConfig", "KinModelPredictiveControllerAcadosConfig"]

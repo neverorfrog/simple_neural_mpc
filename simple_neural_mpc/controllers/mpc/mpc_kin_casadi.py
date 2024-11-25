@@ -1,13 +1,13 @@
 import casadi as ca
 import numpy as np
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.models.differential_drive_dyn import (
-    DifferentialDrive,
-    DifferentialDriveAction,
-    DifferentialDriveState,
+from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import (
+    Unicycle,
+    UnicycleAction,
+    UnicycleState,
 )
 from simple_neural_mpc.utils.configuration import (
-    DynModelPredictiveControllerConfig,
+    KinModelPredictiveControllerConfig,
 )
 from simple_neural_mpc.utils.trajectory import Trajectory
 
@@ -15,7 +15,7 @@ np.random.seed(31)
 
 
 class ModelPredictiveController(Controller):
-    def __init__(self, robot: DifferentialDrive, config: DynModelPredictiveControllerConfig):
+    def __init__(self, robot: Unicycle, config: KinModelPredictiveControllerConfig):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
@@ -69,23 +69,23 @@ class ModelPredictiveController(Controller):
     def _stage_constraints(self, n):
         state = self.state[:, n]
         action = self.action[:, n]
-        F_l, F_r = self._unpack_action(action)
+        v, w = self._unpack_action(action)
 
         input_constraints = self.config.input_constraints
 
         # input limits
         self.opti.subject_to(
-            self.opti.bounded(input_constraints.F_l_min, F_l, input_constraints.F_l_max)
+            self.opti.bounded(input_constraints.v_min, v, input_constraints.v_max)
         )
         self.opti.subject_to(
-            self.opti.bounded(input_constraints.F_r_min, F_r, input_constraints.F_r_max)
+            self.opti.bounded(input_constraints.w_min, w, input_constraints.w_max)
         )
 
         # Model Dynamics
         self.opti.subject_to(self.state[:, n + 1] == self.robot.transition(state, action))
 
     def _stage_cost(self, n):
-        F_l, F_r = self._unpack_action(self.action[:, n])
+        v, w = self._unpack_action(self.action[:, n])
         cost_weights = self.config.cost_weights
         cost = 0
 
@@ -95,8 +95,8 @@ class ModelPredictiveController(Controller):
         )  # MSE on position
 
         # Control minimization
-        cost += cost_weights.F_l * (F_l**2)  # steer angle rate
-        cost += cost_weights.F_r * (F_r**2)
+        cost += cost_weights.w * (w**2)  # steer angle rate
+        cost += cost_weights.v * (v**2)
 
         return cost
 
@@ -106,7 +106,7 @@ class ModelPredictiveController(Controller):
 
         return cost
 
-    def command(self, robot: DifferentialDrive, reference: Trajectory):
+    def command(self, robot: Unicycle, reference: Trajectory):
         self._init_horizon(robot.state)
 
         # generate trajectory for next N steps
@@ -122,16 +122,19 @@ class ModelPredictiveController(Controller):
         sol = self.opti.solve()
         self.action_prediction = sol.value(self.action)
         self.state_prediction = sol.value(self.state)
-        action = DifferentialDriveAction(
-            F_l=self.action_prediction[0][0], F_r=self.action_prediction[1][0]
+        action = UnicycleAction(
+            v=self.action_prediction[0][0], w=self.action_prediction[1][0]
         )
-
+        robot.input = action
+        
+        next_state = robot.transition(robot.state.values, action.values).full().squeeze()
+        next_state = robot.__class__.create_state(*next_state)
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
-        ref = ref[:, 0]
+        robot.state = next_state
+        
+        return action, next_state, ref, error
 
-        return action, ref, error
-
-    def _init_horizon(self, state: DifferentialDriveState):
+    def _init_horizon(self, state: UnicycleState):
         # initial state
         state = state.values.squeeze()
         self.opti.set_value(self.state0, state)
@@ -144,11 +147,9 @@ class ModelPredictiveController(Controller):
         x = state[self.robot.state.index("x")]
         y = state[self.robot.state.index("y")]
         psi = state[self.robot.state.index("psi")]
-        v = state[self.robot.state.index("v")]
-        w = state[self.robot.state.index("w")]
-        return x, y, psi, v, w
+        return x, y, psi
 
     def _unpack_action(self, action: np.ndarray):
-        F_l = action[self.robot.input.index("F_l")]
-        F_r = action[self.robot.input.index("F_r")]
-        return F_l, F_r
+        v = action[self.robot.input.index("v")]
+        w = action[self.robot.input.index("w")]
+        return v, w
