@@ -47,16 +47,13 @@ class TrajectoryTrackingSimulation:
 
             # computing control signal
             start = time.time()
-            action, ref, error = self.controller.command(self.robot, self.trajectory)
+            action, state, ref, error = self.controller.command(self.robot, self.trajectory)
             elapsed_time = time.time() - start
-
-            # applying control signal
-            state = self.robot.drive(action)
-
+            
             # logging
             state_traj.append(state)
             action_traj.append(action)
-            ref_traj.append(ref)
+            ref_traj.append(ref[:,0])
             error_traj.append(error)
             elapsed.append(elapsed_time)
 
@@ -81,13 +78,13 @@ class TrajectoryTrackingSimulation:
         state_traj = np.array(state_traj)
         ref_traj = np.array(ref_traj)
         error_traj = np.array(error_traj)
+        
         x_traj = state_traj[:, self.robot.state.index("x")]
         y_traj = state_traj[:, self.robot.state.index("y")]
         x_ref_traj = ref_traj[:, self.robot.state.index("x")]
         y_ref_traj = ref_traj[:, self.robot.state.index("y")]
-        time = np.array(state_traj)[
-            :, self.robot.state.index("t")
-        ]  # for ascissa in side plots
+        
+        time = np.linspace(0, N * 0.01, N)
 
         # figure params
         grid = GridSpec(3, 2, width_ratios=[2, 1])

@@ -4,6 +4,7 @@ from matplotlib.axes import Axes
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 from simple_neural_mpc.utils.plotting import plot_wheeled_robot
+from acados_template import AcadosModel
 
 
 class DifferentialDrive(Robot):
@@ -17,35 +18,57 @@ class DifferentialDrive(Robot):
         return DifferentialDriveAction(*args, **kwargs)
 
     def _init_model(self):
+        model_name = "kinematic_differential_drive"
 
         # state variables
-        x, y, psi, t = self.state.variables
-
+        x, y, psi = self.state.variables
+        state = ca.vertcat(x, y, psi)
+        
         # input variables
         v, w = self.input.variables
+        control = ca.vertcat(v, w)
+        
+        # state dot variables
+        x_dot, y_dot, psi_dot = ca.SX.sym("x_dot"), ca.SX.sym("y_dot"), ca.SX.sym("psi_dot")
+        state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
 
-        # ODE
+        # Explicit ODE
         x_dot = v * ca.cos(psi)
         y_dot = v * ca.sin(psi)
         psi_dot = w
-        t_dot = 1
+        f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
+        
+        # Implicit ODE
+        f_impl = state_dot - f_expl
+        
+        # Create acados model
+        self.model = AcadosModel()
+        self.model.name = model_name
+        self.model.f_expl_expr = f_expl
+        self.model.f_impl_expr = f_impl
+        self.model.x = state
+        self.model.xdot = state_dot
+        self.model.u = control
+        self.model.t_label = "$t$ [s]"
+        self.model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
+        self.model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
+        
 
-        state_dot = ca.vertcat(x_dot, y_dot, psi_dot, t_dot)
-
-        ode = ca.Function("ode", [self.state.syms, self.input.syms], [state_dot])
-
-        integrator = self.integrate(self.state.syms, self.input.syms, ode, self.dt)
-
-        self._transition = ca.Function(
-            "transition", [self.state.syms, self.input.syms], [integrator]
-        )
+    def drive(self, input: FancyVector):
+        """
+        :param input: vector of inputs
+        """
+        next_state = self.transition(self.state.values, input.values)
+        self.state = self.__class__.create_state(*next_state)
+        self.input = input
+        return self.state
 
     @property
     def transition(self):
         return self._transition
 
     def plot(self, axis: Axes, state):
-        x, y, psi, t = state
+        x, y, psi = state
         plot_wheeled_robot(axis, x, y, psi)
 
 
@@ -87,8 +110,8 @@ class DifferentialDriveState(FancyVector):
         :param y: y coordinate | [m]
         :param psi: yaw angle | [rad]
         """
-        self._values = np.array([x, y, psi, t])
-        self._keys = ["x", "y", "psi", "t"]
+        self._values = np.array([x, y, psi])
+        self._keys = ["x", "y", "psi"]
         self._syms = ca.vertcat(
             *[ca.SX.sym(self._keys[i]) for i in range(len(self._keys))]
         )
@@ -104,7 +127,3 @@ class DifferentialDriveState(FancyVector):
     @property
     def psi(self):
         return self.values[2]
-
-    @property
-    def t(self):
-        return self.values[3]

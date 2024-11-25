@@ -125,11 +125,15 @@ class ModelPredictiveController(Controller):
         action = DifferentialDriveAction(
             v=self.action_prediction[0][0], w=self.action_prediction[1][0]
         )
-
+        robot.input = action
+        
+        next_state = robot.transition(robot.state.values, action.values).full().squeeze()
+        next_state = robot.__class__.create_state(*next_state)
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
         ref = ref[:, 0]
-
-        return action, ref, error
+        robot.state = next_state
+        
+        return action, next_state, ref, error
 
     def _init_horizon(self, state: DifferentialDriveState):
         # initial state
