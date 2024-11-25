@@ -9,18 +9,20 @@ from simple_neural_mpc.utils.configuration_dyn import (
     ModelPredictiveControllerConfig,
 )
 from simple_neural_mpc.utils.trajectory import Circle
+from simple_neural_mpc.utils import project_root
 
 if __name__ == "__main__":
     reference = Circle(freq=0.2)
+    root = project_root()
 
     # Bicycle model and corresponding controller
     robot_config = load_config(
-        "config/models/differential_drive.yaml",
+        f"{root}/config/models/differential_drive.yaml",
         DifferentialDriveConfig,
     )
 
     controller_config = load_config(
-        "config/controllers/mpc_dyn.yaml",
+        f"{root}/config/controllers/mpc_dyn.yaml",
         ModelPredictiveControllerConfig,
     )
 

@@ -7,13 +7,15 @@ from simple_neural_mpc.simulation.trajectory_tracking import (
 from simple_neural_mpc.utils import load_config
 from simple_neural_mpc.utils.configuration import DifferentialDriveConfig
 from simple_neural_mpc.utils.trajectory import Circle
+from simple_neural_mpc.utils import project_root
 
 if __name__ == "__main__":
     reference = Circle()
+    root = project_root()
 
     # Bicycle model and corresponding controller
     robot_config = load_config(
-        "config/models/differential_drive.yaml",
+        f"{root}/config/models/differential_drive.yaml",
         DifferentialDriveConfig,
     )
     robot = DifferentialDrive(config=robot_config)
