@@ -1,10 +1,11 @@
 import casadi as ca
 import numpy as np
+from acados_template import AcadosModel
 from matplotlib.axes import Axes
+
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 from simple_neural_mpc.utils.plotting import plot_wheeled_robot
-from acados_template import AcadosModel
 
 
 class Unicycle(Robot):
@@ -23,13 +24,17 @@ class Unicycle(Robot):
         # state variables
         x, y, psi = self.state.variables
         state = ca.vertcat(x, y, psi)
-        
+
         # input variables
         v, w = self.input.variables
         control = ca.vertcat(v, w)
-        
+
         # state dot variables
-        x_dot, y_dot, psi_dot = ca.MX.sym("x_dot"), ca.MX.sym("y_dot"), ca.MX.sym("psi_dot")
+        x_dot, y_dot, psi_dot = (
+            ca.MX.sym("x_dot"),
+            ca.MX.sym("y_dot"),
+            ca.MX.sym("psi_dot"),
+        )
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
 
         # Explicit ODE
@@ -37,10 +42,10 @@ class Unicycle(Robot):
         y_dot = v * ca.sin(psi)
         psi_dot = w
         f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
-        
+
         # Implicit ODE
         f_impl = state_dot - f_expl
-        
+
         # Create acados model
         self.model = AcadosModel()
         self.model.name = model_name
@@ -52,7 +57,7 @@ class Unicycle(Robot):
         self.model.t_label = "$t$ [s]"
         self.model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
         self.model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
-        
+
     @property
     def transition(self):
         pass

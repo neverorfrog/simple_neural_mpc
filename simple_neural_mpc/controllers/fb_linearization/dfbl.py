@@ -1,6 +1,7 @@
 import casadi as ca
 import numpy as np
 from casadi import cos, sin
+
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import (
     Unicycle,
@@ -42,14 +43,14 @@ class DFBL(Controller):
 
         a_w = np.matmul(inverse_decoupling_matrix, u_io)
         v = self.v_transition(input.v, a_w[0]).full().squeeze()
-        
+
         action = UnicycleAction(v, a_w[1])
         next_state = robot.transition(robot.state.values, action.values).full().squeeze()
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state
-        
+
         print(ref["p"])
-        
+
         return action, next_state, ref["p"], e_p
 
     def integrate(self, v, a, h):

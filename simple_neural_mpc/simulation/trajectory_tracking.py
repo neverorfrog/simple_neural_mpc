@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.gridspec import GridSpec
+
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils import project_root
@@ -47,14 +48,16 @@ class TrajectoryTrackingSimulation:
 
             # computing control signal
             start = time.time()
-            action, state, ref, error = self.controller.command(self.robot, self.trajectory)
+            action, state, ref, error = self.controller.command(
+                self.robot, self.trajectory
+            )
             elapsed_time = time.time() - start
-            
+
             # logging
             state_traj.append(state)
             action_traj.append(action)
             if len(ref.shape) > 1:
-                ref_traj.append(ref[:,0])
+                ref_traj.append(ref[:, 0])
             else:
                 ref_traj.append(ref)
             error_traj.append(error)
@@ -81,12 +84,12 @@ class TrajectoryTrackingSimulation:
         state_traj = np.array(state_traj)
         ref_traj = np.array(ref_traj)
         error_traj = np.array(error_traj)
-        
+
         x_traj = state_traj[:, self.robot.state.index("x")]
         y_traj = state_traj[:, self.robot.state.index("y")]
         x_ref_traj = ref_traj[:, self.robot.state.index("x")]
         y_ref_traj = ref_traj[:, self.robot.state.index("y")]
-        
+
         time = np.linspace(0, N * 0.01, N)
 
         # figure params

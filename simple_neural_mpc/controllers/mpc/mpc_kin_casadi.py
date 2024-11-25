@@ -1,5 +1,6 @@
 import casadi as ca
 import numpy as np
+
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import (
     Unicycle,
@@ -126,12 +127,12 @@ class ModelPredictiveController(Controller):
             v=self.action_prediction[0][0], w=self.action_prediction[1][0]
         )
         robot.input = action
-        
+
         next_state = robot.transition(robot.state.values, action.values).full().squeeze()
         next_state = robot.__class__.create_state(*next_state)
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
         robot.state = next_state
-        
+
         return action, next_state, ref, error
 
     def _init_horizon(self, state: UnicycleState):

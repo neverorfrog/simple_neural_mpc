@@ -13,7 +13,9 @@ class Controller(ABC):
         pass
 
     @abstractmethod
-    def command(self, *args, **kwargs) -> Tuple[FancyVector, FancyVector, np.ndarray, np.ndarray]:
+    def command(
+        self, *args, **kwargs
+    ) -> Tuple[FancyVector, FancyVector, np.ndarray, np.ndarray]:
         """Compute the control actions
         Returns:
             (np.array): control actions

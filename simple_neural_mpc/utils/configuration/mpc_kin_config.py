@@ -36,9 +36,5 @@ class ModelPredictiveControllerConfig:
     horizon: int = MISSING
     color: str = MISSING
     cost_weights: CostWeights = field(default_factory=CostWeights)
-    input_constraints: InputConstraints = field(
-        default_factory=InputConstraints
-    )
-    state_constraints: StateConstraints = field(
-        default_factory=StateConstraints
-    )
+    input_constraints: InputConstraints = field(default_factory=InputConstraints)
+    state_constraints: StateConstraints = field(default_factory=StateConstraints)

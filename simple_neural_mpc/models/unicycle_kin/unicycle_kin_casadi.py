@@ -1,6 +1,7 @@
 import casadi as ca
 import numpy as np
 from matplotlib.axes import Axes
+
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 from simple_neural_mpc.utils.plotting import plot_wheeled_robot

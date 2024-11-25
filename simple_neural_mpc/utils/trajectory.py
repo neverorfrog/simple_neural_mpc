@@ -57,8 +57,8 @@ class Circle(Trajectory):
                 -self.radius * ((self.omega) ** 2) * np.sin(self.omega * t),
             ]
         )
-        
+
         psi = np.arctan2(pd[1], pd[0])
-        psid = (pd[0] * pdd[1] - pd[1] * pdd[0]) / (pd[0]**2 + pd[1]**2)
+        psid = (pd[0] * pdd[1] - pd[1] * pdd[0]) / (pd[0] ** 2 + pd[1] ** 2)
 
         return {"p": p, "pd": pd, "pdd": pdd, "psi": psi, "psid": psid}

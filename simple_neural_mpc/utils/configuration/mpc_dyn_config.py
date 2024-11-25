@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
+
 from omegaconf import MISSING
+
 
 @dataclass
 class CostWeights:
@@ -25,6 +27,7 @@ class StateConstraints:
     y_max: float = MISSING
     psi_min: float = MISSING
     psi_max: float = MISSING
+
 
 @dataclass
 class ModelPredictiveControllerConfig:

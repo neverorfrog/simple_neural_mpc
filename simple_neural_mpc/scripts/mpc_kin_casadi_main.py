@@ -1,17 +1,16 @@
+from simple_neural_mpc.controllers.mpc.mpc_kin_casadi import (
+    ModelPredictiveController as CasadiMPC,
+)
+from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import Unicycle
+from simple_neural_mpc.simulation.trajectory_tracking import (
+    TrajectoryTrackingSimulation,
+)
 from simple_neural_mpc.utils import load_config, project_root
 from simple_neural_mpc.utils.configuration import (
-    UnicycleConfig,
     KinModelPredictiveControllerConfig,
+    UnicycleConfig,
 )
-
 from simple_neural_mpc.utils.trajectory import Circle
-
-from simple_neural_mpc.models.unicycle_kin.unicycle_kin_casadi import Unicycle
-
-from simple_neural_mpc.controllers.mpc.mpc_kin_casadi import ModelPredictiveController as CasadiMPC
-
-from simple_neural_mpc.simulation.trajectory_tracking import TrajectoryTrackingSimulation
-
 
 if __name__ == "__main__":
     reference = Circle(freq=0.2)
@@ -34,5 +33,7 @@ if __name__ == "__main__":
     controller = CasadiMPC(robot, controller_config)
 
     # Simulation
-    simulation = TrajectoryTrackingSimulation("mpc_kin_casadi", robot, controller, reference)
+    simulation = TrajectoryTrackingSimulation(
+        "mpc_kin_casadi", robot, controller, reference
+    )
     simulation.run(N=500, animate=True, save=False)

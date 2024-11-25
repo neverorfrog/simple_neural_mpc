@@ -129,7 +129,7 @@ class ModelPredictiveController(Controller):
 
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
         robot.input = action
-        
+
         next_state = robot.transition(robot.state.values, action.values).full().squeeze()
         next_state = robot.__class__.create_state(*next_state)
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
