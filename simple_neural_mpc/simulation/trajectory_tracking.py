@@ -166,7 +166,7 @@ class TrajectoryTrackingSimulation:
             ax_small1.axis((0, time[-1], -state_max * 1.1, state_max * 1.1))
             ax_small1.plot(
                 time[:i],
-                state_traj[:i, :-1],
+                state_traj[:i, 0:3],
                 "-",
                 alpha=0.7,
                 label=["x", "y", "psi"],

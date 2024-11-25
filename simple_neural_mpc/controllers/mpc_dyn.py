@@ -2,12 +2,12 @@ import casadi as ca
 import numpy as np
 
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.models.differential_drive import (
+from simple_neural_mpc.models.differential_drive_dyn import (
     DifferentialDrive,
     DifferentialDriveAction,
     DifferentialDriveState,
 )
-from simple_neural_mpc.utils.configuration import (
+from simple_neural_mpc.utils.configuration_dyn import (
     ModelPredictiveControllerConfig,
 )
 from simple_neural_mpc.utils.trajectory import Trajectory
@@ -76,19 +76,19 @@ class ModelPredictiveController(Controller):
     def _stage_constraints(self, n):
         state = self.state[:, n]
         action = self.action[:, n]
-        v, w = self._unpack_action(action)
+        F_l, F_r = self._unpack_action(action)
 
         input_constraints = self.config.input_constraints
 
         # input limits
         self.opti.subject_to(
             self.opti.bounded(
-                input_constraints.v_min, v, input_constraints.v_max
+                input_constraints.F_l_min, F_l, input_constraints.F_l_max
             )
         )
         self.opti.subject_to(
             self.opti.bounded(
-                input_constraints.w_min, w, input_constraints.w_max
+                input_constraints.F_r_min, F_r, input_constraints.F_r_max
             )
         )
 
@@ -98,7 +98,7 @@ class ModelPredictiveController(Controller):
         )
 
     def _stage_cost(self, n):
-        v, w = self._unpack_action(self.action[:, n])
+        F_l, F_r = self._unpack_action(self.action[:, n])
         cost_weights = self.config.cost_weights
         cost = 0
 
@@ -108,8 +108,8 @@ class ModelPredictiveController(Controller):
         )  # MSE on position
 
         # Control minimization
-        cost += cost_weights.w * (w**2)  # steer angle rate
-        cost += cost_weights.v * (v**2)
+        cost += cost_weights.F_l * (F_l**2)  # steer angle rate
+        cost += cost_weights.F_r * (F_r**2)
 
         return cost
 
@@ -138,7 +138,7 @@ class ModelPredictiveController(Controller):
         self.action_prediction = sol.value(self.action)
         self.state_prediction = sol.value(self.state)
         action = DifferentialDriveAction(
-            v=self.action_prediction[0][0], w=self.action_prediction[1][0]
+            F_l=self.action_prediction[0][0], F_r=self.action_prediction[1][0]
         )
 
         error = np.linalg.norm(self.state_prediction[:2, 0] - ref[:2, 0])
@@ -159,9 +159,11 @@ class ModelPredictiveController(Controller):
         x = state[self.robot.state.index("x")]
         y = state[self.robot.state.index("y")]
         psi = state[self.robot.state.index("psi")]
-        return x, y, psi
+        v = state[self.robot.state.index("v")]
+        w = state[self.robot.state.index("w")]
+        return x, y, psi, v, w
 
     def _unpack_action(self, action: np.ndarray):
-        v = action[self.robot.input.index("v")]
-        w = action[self.robot.input.index("w")]
-        return v, w
+        F_l = action[self.robot.input.index("F_l")]
+        F_r = action[self.robot.input.index("F_r")]
+        return F_l, F_r
