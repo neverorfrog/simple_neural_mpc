@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from matplotlib.axes import Axes
-
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 

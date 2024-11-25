@@ -3,7 +3,6 @@ import numpy as np
 from casadi import cos, sin
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils import wrap
 from simple_neural_mpc.utils.fancy_vector import FancyVector
@@ -35,13 +34,9 @@ class DifferentialDrive(Robot):
 
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot, t_dot)
 
-        ode = ca.Function(
-            "ode", [self.state.syms, self.input.syms], [state_dot]
-        )
+        ode = ca.Function("ode", [self.state.syms, self.input.syms], [state_dot])
 
-        integrator = self.integrate(
-            self.state.syms, self.input.syms, ode, self.dt
-        )
+        integrator = self.integrate(self.state.syms, self.input.syms, ode, self.dt)
 
         self._transition = ca.Function(
             "transition", [self.state.syms, self.input.syms], [integrator]
@@ -51,9 +46,7 @@ class DifferentialDrive(Robot):
         """
         :param input: vector of inputs
         """
-        next_state = (
-            self.transition(self.state.values, input.values).full().squeeze()
-        )
+        next_state = self.transition(self.state.values, input.values).full().squeeze()
         self.state = self.__class__.create_state(*next_state)
         self.input = input
         return self.state
@@ -67,9 +60,7 @@ class DifferentialDrive(Robot):
         r = 0.2
 
         # Plot circular shape
-        circle = plt.Circle(
-            xy=(x, y), radius=r, facecolor="orange", alpha=0.5, lw=2
-        )
+        circle = plt.Circle(xy=(x, y), radius=r, facecolor="orange", alpha=0.5, lw=2)
         axis.add_patch(circle)
 
         # Draw two wheels as rectangles
@@ -77,16 +68,10 @@ class DifferentialDrive(Robot):
         width = 0.05
         height = 0.15
         x_wheel_right = (
-            x
-            + cos(wheel_angle) * r
-            - cos(psi) * r / 3
-            - cos(wheel_angle) * width
+            x + cos(wheel_angle) * r - cos(psi) * r / 3 - cos(wheel_angle) * width
         )
         y_wheel_right = (
-            y
-            + sin(wheel_angle) * r
-            - sin(psi) * r / 3
-            - sin(wheel_angle) * width
+            y + sin(wheel_angle) * r - sin(psi) * r / 3 - sin(wheel_angle) * width
         )
         wheel_right = plt.Rectangle(
             (x_wheel_right, y_wheel_right),

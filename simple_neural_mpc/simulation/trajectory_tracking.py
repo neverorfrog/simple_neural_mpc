@@ -7,7 +7,6 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.gridspec import GridSpec
-
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils import project_root
@@ -48,9 +47,7 @@ class TrajectoryTrackingSimulation:
 
             # computing control signal
             start = time.time()
-            action, ref, error = self.controller.command(
-                self.robot, self.trajectory
-            )
+            action, ref, error = self.controller.command(self.robot, self.trajectory)
             elapsed_time = time.time() - start
 
             # applying control signal
@@ -64,9 +61,7 @@ class TrajectoryTrackingSimulation:
             elapsed.append(elapsed_time)
 
         if animate:
-            self.animate(
-                state_traj, action_traj, ref_traj, error_traj, elapsed, save
-            )
+            self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
 
     def animate(
         self,
@@ -77,12 +72,8 @@ class TrajectoryTrackingSimulation:
         elapsed: list,
         save: bool = False,
     ):
-        assert isinstance(
-            state_traj, list
-        ), "State trajectory has to be a list"
-        assert isinstance(
-            input_traj, list
-        ), "Action trajectory has to be a list"
+        assert isinstance(state_traj, list), "State trajectory has to be a list"
+        assert isinstance(input_traj, list), "Action trajectory has to be a list"
 
         # simulation params
         N = len(input_traj)
@@ -104,15 +95,9 @@ class TrajectoryTrackingSimulation:
         ax_small1 = plt.subplot(grid[0, 1])
         ax_small2 = plt.subplot(grid[1, 1])
         ax_small3 = plt.subplot(grid[2, 1])
-        state_max = max(
-            state_traj.min(), state_traj.max(), key=abs
-        )  # for axis limits
-        input_max = max(
-            input_traj.min(), input_traj.max(), key=abs
-        )  # for axis limits
-        error_max = max(
-            error_traj.min(), error_traj.max(), key=abs
-        )  # for axis limits
+        state_max = max(state_traj.min(), state_traj.max(), key=abs)  # for axis limits
+        input_max = max(input_traj.min(), input_traj.max(), key=abs)  # for axis limits
+        error_max = max(error_traj.min(), error_traj.max(), key=abs)  # for axis limits
         pos_max = max(
             state_traj[:, :2].min(),
             state_traj[:, :2].max(),
@@ -158,9 +143,7 @@ class TrajectoryTrackingSimulation:
                 color="g",
                 linewidth=4,
             )
-            ax_large.axis(
-                (-pos_max * 1.2, pos_max * 1.2, -pos_max * 1.2, pos_max * 1.2)
-            )
+            ax_large.axis((-pos_max * 1.2, pos_max * 1.2, -pos_max * 1.2, pos_max * 1.2))
 
             ax_small1.cla()
             ax_small1.axis((0, time[-1], -state_max * 1.1, state_max * 1.1))
@@ -175,9 +158,7 @@ class TrajectoryTrackingSimulation:
 
             ax_small2.cla()
             ax_small2.axis((0, time[-1], -input_max * 1.1, input_max * 1.1))
-            ax_small2.plot(
-                time[:i], input_traj[:i, :], "-", alpha=0.7, label=["v", "w"]
-            )
+            ax_small2.plot(time[:i], input_traj[:i, :], "-", alpha=0.7, label=["v", "w"])
             ax_small2.legend()
 
             ax_small3.cla()

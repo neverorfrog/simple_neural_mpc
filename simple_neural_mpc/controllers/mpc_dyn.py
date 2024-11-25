@@ -1,6 +1,5 @@
 import casadi as ca
 import numpy as np
-
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.differential_drive_dyn import (
     DifferentialDrive,
@@ -16,9 +15,7 @@ np.random.seed(31)
 
 
 class ModelPredictiveController(Controller):
-    def __init__(
-        self, robot: DifferentialDrive, config: ModelPredictiveControllerConfig
-    ):
+    def __init__(self, robot: DifferentialDrive, config: ModelPredictiveControllerConfig):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
@@ -59,12 +56,8 @@ class ModelPredictiveController(Controller):
         # initial state
         self.state0 = self.opti.parameter(self.ns)
 
-        self.state = self.opti.variable(
-            self.ns, self.N + 1
-        )  # state trajectory var
-        self.action = self.opti.variable(
-            self.na, self.N
-        )  # control trajectory var
+        self.state = self.opti.variable(self.ns, self.N + 1)  # state trajectory var
+        self.action = self.opti.variable(self.na, self.N)  # control trajectory var
 
         self.state_prediction = np.zeros((self.ns, self.N + 1))
         self.action_prediction = np.ones((self.na, self.N)) + np.random.random(
@@ -82,20 +75,14 @@ class ModelPredictiveController(Controller):
 
         # input limits
         self.opti.subject_to(
-            self.opti.bounded(
-                input_constraints.F_l_min, F_l, input_constraints.F_l_max
-            )
+            self.opti.bounded(input_constraints.F_l_min, F_l, input_constraints.F_l_max)
         )
         self.opti.subject_to(
-            self.opti.bounded(
-                input_constraints.F_r_min, F_r, input_constraints.F_r_max
-            )
+            self.opti.bounded(input_constraints.F_r_min, F_r, input_constraints.F_r_max)
         )
 
         # Model Dynamics
-        self.opti.subject_to(
-            self.state[:, n + 1] == self.robot.transition(state, action)
-        )
+        self.opti.subject_to(self.state[:, n + 1] == self.robot.transition(state, action))
 
     def _stage_cost(self, n):
         F_l, F_r = self._unpack_action(self.action[:, n])
@@ -115,9 +102,7 @@ class ModelPredictiveController(Controller):
 
     def _terminal_cost(self):
         # Mean Squared Error on trajectory final point
-        cost = 10 * ca.sumsqr(
-            self.state[:2, -1] - self.ref[:, -1]
-        )  # MSE on position
+        cost = 10 * ca.sumsqr(self.state[:2, -1] - self.ref[:, -1])  # MSE on position
 
         return cost
 

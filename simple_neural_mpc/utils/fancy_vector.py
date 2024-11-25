@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Union
 
 import numpy as np
@@ -66,9 +66,7 @@ class FancyVector(ABC):
         Overload + operator.
         :param other: numpy array to be added to state vector
         """
-        assert isinstance(
-            other, (self.__class__)
-        ), "You can only sum two same states"
+        assert isinstance(other, (self.__class__)), "You can only sum two same states"
         tobesummed = other.values if isinstance(other, FancyVector) else other
         new_state = self.values + tobesummed
         return self.__class__.create(*new_state)

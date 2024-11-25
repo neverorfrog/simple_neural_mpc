@@ -8,19 +8,20 @@ repos:
     hooks:
       - id: black
         files: '^.*\.py'
-        args: ["--line-length", "79"]
+        args: ["--line-length", "90"]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
         name: isort (python)
-        args: ["--profile", "black", "--line-length", "79"]
+        args: ["--profile", "black", "--line-length", "80"]
 
-  # - repo: https://github.com/PyCQA/flake8
-  #   rev: 7.1.1
-  #   hooks:
-  #     - id: flake8
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ["--extend-ignore", "E501, W503, E203, E741"]
 
   # - repo: https://github.com/pre-commit/mirrors-mypy
   #   rev: v1.13.0
@@ -30,4 +31,3 @@ repos:
   #       args: [--strict, --ignore-missing-imports, --install-types, --non-interactive]
   #       disable_error_code: import-untyped
   #       plugins: [mypy_pytorch_lightning]
-        

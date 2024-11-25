@@ -1,7 +1,6 @@
 import casadi as ca
 import numpy as np
 from casadi import cos, sin
-
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.differential_drive_kin import (
     DifferentialDrive,

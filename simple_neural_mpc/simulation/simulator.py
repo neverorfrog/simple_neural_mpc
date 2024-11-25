@@ -76,9 +76,7 @@ class Simulator(ABC):
         pass
 
     @abstractmethod
-    def init_animation(
-        self, func: object, fig: Figure = plt.gcf(), frames: int = None
-    ):
+    def init_animation(self, func: object, fig: Figure = plt.gcf(), frames: int = None):
         pass
 
     @abstractmethod

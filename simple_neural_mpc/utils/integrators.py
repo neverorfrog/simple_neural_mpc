@@ -14,9 +14,7 @@ class Integrator(ABC):
 
 class Euler(Integrator):
 
-    def __init__(
-        self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX
-    ):
+    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
         f = ca.Function("f", [state, action, curvature], [f])
         k = f(state, action, curvature)
         x_next = state + h * k
@@ -27,9 +25,7 @@ class Euler(Integrator):
 
 class RK4(Integrator):
 
-    def __init__(
-        self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX
-    ):
+    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
         f = ca.Function("f", [state, action, curvature], [f])
         k_1 = f(state, action, curvature)
         k_2 = f(state + 0.5 * h * k_1, action, curvature)
@@ -43,9 +39,7 @@ class RK4(Integrator):
 
 class RK2(Integrator):
 
-    def __init__(
-        self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX
-    ):
+    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
         f = ca.Function("f", [state, action, curvature], [f])
         k_1 = f(state, action, curvature)
         k_2 = f(state + 0.5 * h * k_1, action, curvature)
@@ -57,9 +51,7 @@ class RK2(Integrator):
 
 class CVODESIntegrator:  # TODO DOES NOT WORK
 
-    def __init__(
-        self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX
-    ):
+    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
 
         f = ca.Function("f", [state, action, curvature], [f])
         ode = {"x": state, "p": action, "ode": f}

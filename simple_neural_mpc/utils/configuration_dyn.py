@@ -29,10 +29,12 @@ class StateConstraints:
     psi_min: float = MISSING
     psi_max: float = MISSING
 
+
 @dataclass
 class Car:
     m: float = MISSING
     l: float = MISSING
+
 
 @dataclass
 class ModelPredictiveControllerConfig:
@@ -40,17 +42,11 @@ class ModelPredictiveControllerConfig:
     horizon: int = MISSING
     color: str = MISSING
     cost_weights: CostWeights = field(default_factory=CostWeights)
-    input_constraints: InputConstraints = field(
-        default_factory=InputConstraints
-    )
-    state_constraints: StateConstraints = field(
-        default_factory=StateConstraints
-    )
+    input_constraints: InputConstraints = field(default_factory=InputConstraints)
+    state_constraints: StateConstraints = field(default_factory=StateConstraints)
 
 
 @dataclass
 class DifferentialDriveConfig:
     dt: float = MISSING
-    car: Car = field(
-        default_factory=Car
-    )
+    car: Car = field(default_factory=Car)
