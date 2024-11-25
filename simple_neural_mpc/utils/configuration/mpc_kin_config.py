@@ -8,16 +8,16 @@ from omegaconf import MISSING
 class CostWeights:
     ex: float = MISSING
     ey: float = MISSING
-    F_l: float = MISSING
-    F_r: float = MISSING
+    v: float = MISSING
+    w: float = MISSING
 
 
 @dataclass
 class InputConstraints:
-    F_l_min: float = MISSING
-    F_l_max: float = MISSING
-    F_r_min: float = MISSING
-    F_r_max: float = MISSING
+    v_min: float = MISSING
+    v_max: float = MISSING
+    w_min: float = MISSING
+    w_max: float = MISSING
 
 
 @dataclass
@@ -31,22 +31,14 @@ class StateConstraints:
 
 
 @dataclass
-class Car:
-    m: float = MISSING
-    l: float = MISSING
-
-
-@dataclass
 class ModelPredictiveControllerConfig:
     dt: float = MISSING
     horizon: int = MISSING
     color: str = MISSING
     cost_weights: CostWeights = field(default_factory=CostWeights)
-    input_constraints: InputConstraints = field(default_factory=InputConstraints)
-    state_constraints: StateConstraints = field(default_factory=StateConstraints)
-
-
-@dataclass
-class DifferentialDriveConfig:
-    dt: float = MISSING
-    car: Car = field(default_factory=Car)
+    input_constraints: InputConstraints = field(
+        default_factory=InputConstraints
+    )
+    state_constraints: StateConstraints = field(
+        default_factory=StateConstraints
+    )

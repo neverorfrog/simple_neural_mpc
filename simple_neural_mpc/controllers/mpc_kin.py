@@ -7,7 +7,7 @@ from simple_neural_mpc.models.differential_drive_kin import (
     DifferentialDriveState,
 )
 from simple_neural_mpc.utils.configuration import (
-    ModelPredictiveControllerConfig,
+    KinModelPredictiveControllerConfig,
 )
 from simple_neural_mpc.utils.trajectory import Trajectory
 
@@ -15,7 +15,7 @@ np.random.seed(31)
 
 
 class ModelPredictiveController(Controller):
-    def __init__(self, robot: DifferentialDrive, config: ModelPredictiveControllerConfig):
+    def __init__(self, robot: DifferentialDrive, config: KinModelPredictiveControllerConfig):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot

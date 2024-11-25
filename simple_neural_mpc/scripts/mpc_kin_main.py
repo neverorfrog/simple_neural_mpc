@@ -1,12 +1,12 @@
-from simple_neural_mpc.controllers.mpc_dyn import ModelPredictiveController
-from simple_neural_mpc.models.differential_drive_dyn import DifferentialDrive
+from simple_neural_mpc.controllers.mpc_kin import ModelPredictiveController
+from simple_neural_mpc.models.differential_drive_kin import DifferentialDrive
 from simple_neural_mpc.simulation.trajectory_tracking import (
     TrajectoryTrackingSimulation,
 )
 from simple_neural_mpc.utils import load_config
-from simple_neural_mpc.utils.configuration_dyn import (
+from simple_neural_mpc.utils.configuration import (
     DifferentialDriveConfig,
-    ModelPredictiveControllerConfig,
+    KinModelPredictiveControllerConfig,
 )
 from simple_neural_mpc.utils.trajectory import Circle
 from simple_neural_mpc.utils import project_root
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     )
 
     controller_config = load_config(
-        f"{root}/config/controllers/mpc_dyn.yaml",
-        ModelPredictiveControllerConfig,
+        f"{root}/config/controllers/mpc_kin.yaml",
+        KinModelPredictiveControllerConfig,
     )
 
     print(controller_config)

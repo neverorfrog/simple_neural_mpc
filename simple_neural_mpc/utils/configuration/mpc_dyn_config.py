@@ -1,9 +1,6 @@
 from dataclasses import dataclass, field
-
 from omegaconf import MISSING
 
-
-@dataclass
 @dataclass
 class CostWeights:
     ex: float = MISSING
@@ -29,13 +26,6 @@ class StateConstraints:
     psi_min: float = MISSING
     psi_max: float = MISSING
 
-
-@dataclass
-class Car:
-    m: float = MISSING
-    l: float = MISSING
-
-
 @dataclass
 class ModelPredictiveControllerConfig:
     dt: float = MISSING
@@ -44,9 +34,3 @@ class ModelPredictiveControllerConfig:
     cost_weights: CostWeights = field(default_factory=CostWeights)
     input_constraints: InputConstraints = field(default_factory=InputConstraints)
     state_constraints: StateConstraints = field(default_factory=StateConstraints)
-
-
-@dataclass
-class DifferentialDriveConfig:
-    dt: float = MISSING
-    car: Car = field(default_factory=Car)
