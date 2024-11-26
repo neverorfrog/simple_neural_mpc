@@ -65,9 +65,10 @@ class ModelPredictiveController(Controller):
         self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
 
         # Solver Options
-        self.ocp.solver_options.qp_solver = "FULL_CONDENSING_HPIPM"
+        self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_OSQP"
         self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
         self.ocp.solver_options.integrator_type = "ERK"
+        self.ocp.solver_options.sim_method_num_stages = 1 # One stage to have explicit euler integration (the model is simple)
         self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
 
         # Prediction Horizon

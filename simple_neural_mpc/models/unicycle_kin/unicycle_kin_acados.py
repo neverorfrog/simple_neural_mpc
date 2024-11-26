@@ -19,7 +19,7 @@ class Unicycle(Robot):
         return UnicycleAction(*args, **kwargs)
 
     def _init_model(self):
-        model_name = "kinematic_differential_drive"
+        model_name = "kinematic_unicycle"
 
         # state variables
         x, y, psi = self.state.variables

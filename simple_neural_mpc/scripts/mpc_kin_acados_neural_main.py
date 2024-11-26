@@ -80,4 +80,4 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = TrajectoryTrackingSimulation("neural_mpc", robot, controller, reference)
-    simulation.run(N=200, animate=True, save=True)
+    simulation.run(N=500, animate=True, save=False)
