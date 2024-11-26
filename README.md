@@ -10,3 +10,9 @@ To use the code, install the environment with:
 ```
 pip install -e .
 ```
+
+or with pixi:
+
+```
+pixi run build-acados && pixi install
+```
