@@ -7,10 +7,14 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [activation]
-env = { PYTHONPATH = "simple_neural_mpc:$PYTHONPATH"}
+env = { PYTHONPATH = ".:$PYTHONPATH"}
 
 [tasks]
 build-acados = "cd external/acados && mkdir -p build && cd build && cmake -DACADOS_WITH_QPOASES=ON -DACADOS_WITH_OSQP=ON .. && make -j8"
+fbl = "python simple_neural_mpc/scripts/fbl_main.py"
+mpc_dyn_casadi = "python simple_neural_mpc/scripts/mpc_dyn_casadi_main.py"
+mpc_kin_casadi = "python simple_neural_mpc/scripts/mpc_kin_casadi_main.py"
+mpc_kin_acados = "python simple_neural_mpc/scripts/mpc_kin_acados_main.py"
 
 [dependencies]
 python = "==3.11"

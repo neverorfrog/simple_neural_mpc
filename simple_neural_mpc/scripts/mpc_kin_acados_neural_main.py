@@ -38,14 +38,15 @@ class PyTorchModel(torch.nn.Module):
         # x = self.output_layer(x)
         # x = x.T  #! output has to be a column vector
         return x
-    
+
+
 class PretrainedModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(5, 256)  # 5 input nodes: x, y, theta, v, omega
         self.fc2 = nn.Linear(256, 256)
         self.fc3 = nn.Linear(256, 3)  # 3 output nodes: x_next, y_next, theta_next
-        
+
     def forward(self, x):
         x = x.T  #! input has to be a column vector
         x = torch.tanh(self.fc1(x))
@@ -53,11 +54,14 @@ class PretrainedModel(torch.nn.Module):
         x = self.fc3(x)
         x = x.T  #! output has to be a column vector
         return x
-    
+
+
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
 torch_model = PretrainedModel()
-torch_model.load_state_dict(torch.load(f"{root}/simple_neural_mpc/scripts/unicycle_model_state_simple.pth"))
+torch_model.load_state_dict(
+    torch.load(f"{root}/simple_neural_mpc/scripts/unicycle_model_state_simple.pth")
+)
 torch_model.eval()
 
 if __name__ == "__main__":
