@@ -1,5 +1,9 @@
+import importlib
+import sys
+from pathlib import Path
+
 import numpy as np
-from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
+from acados_template import AcadosOcp, AcadosOcpSolver
 
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.unicycle_kin.unicycle_kin_acados import (
@@ -15,77 +19,106 @@ np.random.seed(31)
 
 
 class ModelPredictiveController(Controller):
-    def __init__(self, robot: Unicycle, config: KinModelPredictiveControllerConfig):
+    def __init__(
+        self,
+        robot: Unicycle,
+        config: KinModelPredictiveControllerConfig,
+        to_generate: bool = False,
+    ):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
-        self.k = 0  # current iteration
-        self._init_opti()
-        self._init_solver()
-        self._init_integrator()
-
-    def _init_opti(self):
-        self.ocp = AcadosOcp()
-        self.ocp.model = self.robot.model
-
-        # Dimensions
-        self.ns = self.ocp.model.x.rows()
-        self.na = self.ocp.model.u.rows()
-
-        # Mapping of variables for cost function
-        self.n_opt = self.ns + self.na  # number of optimization variables
-        self.n_opt_e = self.ns  # number of optimization variables at the last stage
-        Vx = np.zeros((self.n_opt, self.ns))
-        Vx[: self.ns, : self.ns] = np.eye(self.ns)
-        self.ocp.cost.Vx = Vx  # map state to cost
-        Vu = np.zeros((self.n_opt, self.na))
-        Vu[self.ns :, : self.na] = np.eye(self.na)
-        self.ocp.cost.Vu = Vu
-        self.ocp.cost.Vx_e = np.eye(self.ns)  # map state to cost at the last stage
-
-        # Cost
-        self.ocp.cost.cost_type = "LINEAR_LS"
-        self.ocp.cost.cost_type_e = "LINEAR_LS"
-        self.ocp.cost.W = np.diag(
-            np.array([15, 15, 0.01, 1, 1])
-        )  # weight matrix for stage cost
-        self.ocp.cost.W_e = np.diag(
-            np.array([5, 5, 0.01])
-        )  # weight matrix for terminal cost
-
-        # Constraints
-        x_0, y_0, psi_0 = self.robot.state.values
-        self.ocp.constraints.x0 = np.array([x_0, y_0, psi_0])
-
-        # Reference
-        self.ocp.cost.yref = np.zeros((self.n_opt))
-        self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
-
-        # Solver Options
-        self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
-        self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-        self.ocp.solver_options.integrator_type = "IRK"
-        self.ocp.solver_options.nlp_solver_type = "SQP"
-
-        # Prediction Horizon
         self.N = self.config.horizon
-        self.ocp.solver_options.tf = self.config.horizon * self.config.dt
-        self.ocp.solver_options.N_horizon = self.config.horizon
+        self.acados_gen_path = Path("acados_generated_files")
+        self.to_generate = to_generate
+        self.k = 0  # current iteration
+        self._init_ocp()
 
-        # Debug Stuff
-        self.ocp.solver_options.print_level = 0
+    def _init_ocp(self):
+        if not self.to_generate:
+            try:
+                if self.acados_gen_path.is_dir():
+                    sys.path.append(str(self.acados_gen_path))
+                acados_ocp_solver_pyx = importlib.import_module(
+                    "c_generated_code.acados_ocp_solver_pyx"
+                )
+                self.solver: AcadosOcpSolver = (
+                    acados_ocp_solver_pyx.AcadosOcpSolverCython(
+                        self.robot.model.name, "SQP", self.N
+                    )
+                )
+                print("Acados cython module imported successfully.")
+            except ImportError:
+                print("Acados cython code was not found. Generating it now...")
+                self.to_generate = True
+        if self.to_generate:
+            self.ocp = AcadosOcp()
+            self.ocp.model = self.robot.model
+            self.ocp.code_export_directory = self.acados_gen_path / ("c_generated_code")
+            json_file = str(self.acados_gen_path / ("acados_ocp.json"))
 
-    def _init_solver(self) -> None:
-        self.solver = AcadosOcpSolver(self.ocp)
-        self.state_prediction = np.zeros((self.ns, self.N + 1))
-        self.action_prediction = np.zeros((self.na, self.N))
-        for n in range(self.N + 1):
-            self.solver.set(n, "x", self.state_prediction[:, n])
-        for n in range(self.N):
-            self.solver.set(n, "u", self.action_prediction[:, n])
+            # Dimensions
+            self.ns = self.ocp.model.x.rows()
+            self.na = self.ocp.model.u.rows()
 
-    def _init_integrator(self) -> None:
-        self.integrator = AcadosSimSolver(self.ocp)
+            # Mapping of variables for cost function
+            self.n_opt = self.ns + self.na  # number of optimization variables
+            self.n_opt_e = self.ns  # number of optimization variables at the last stage
+            Vx = np.zeros((self.n_opt, self.ns))
+            Vx[: self.ns, : self.ns] = np.eye(self.ns)
+            self.ocp.cost.Vx = Vx  # map state to cost
+            Vu = np.zeros((self.n_opt, self.na))
+            Vu[self.ns :, : self.na] = np.eye(self.na)
+            self.ocp.cost.Vu = Vu
+            self.ocp.cost.Vx_e = np.eye(self.ns)  # map state to cost at the last stage
+
+            # Cost
+            self.ocp.cost.cost_type = "LINEAR_LS"
+            self.ocp.cost.cost_type_e = "LINEAR_LS"
+            self.ocp.cost.W = np.diag(
+                np.array([15, 15, 0.01, 1, 1])
+            )  # weight matrix for stage cost
+            self.ocp.cost.W_e = np.diag(
+                np.array([5, 5, 0.01])
+            )  # weight matrix for terminal cost
+
+            # Constraints
+            x_0, y_0, psi_0 = self.robot.state.values
+            self.ocp.constraints.x0 = np.array([x_0, y_0, psi_0])
+
+            # Reference
+            self.ocp.cost.yref = np.zeros((self.n_opt))
+            self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
+
+            # Solver Options
+            self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
+            self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
+            self.ocp.solver_options.integrator_type = "IRK"
+            self.ocp.solver_options.nlp_solver_type = "SQP"
+            self.ocp.solver_options.tol = 1e-3
+            self.ocp.solver_options.qp_tol = 1e-3
+            self.ocp.solver_options.nlp_solver_max_iter = 10
+            self.ocp.solver_options.qp_solver_iter_max = 10
+            self.ocp.solver_options.print_level = 0
+
+            # Prediction Horizon
+            self.ocp.solver_options.tf = self.config.horizon * self.config.dt
+            self.ocp.solver_options.N_horizon = self.config.horizon
+
+            # Debug Stuff
+            self.ocp.solver_options.print_level = 0
+
+            # Generate c code
+            AcadosOcpSolver.generate(self.ocp, json_file=json_file)
+            AcadosOcpSolver.build(self.ocp.code_export_directory, with_cython=True)
+            if self.acados_gen_path.is_dir():
+                sys.path.append(str(self.acados_gen_path))
+            acados_ocp_solver_pyx = importlib.import_module(
+                "c_generated_code.acados_ocp_solver_pyx"
+            )
+            self.solver: AcadosOcpSolver = acados_ocp_solver_pyx.AcadosOcpSolverCython(
+                self.robot.model.name, self.ocp.solver_options.nlp_solver_type, self.N
+            )
 
     def command(self, robot: Unicycle, reference: Trajectory):
         # generate trajectory for next N steps
@@ -115,7 +148,7 @@ class ModelPredictiveController(Controller):
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
 
-        next_state = self.integrator.simulate(robot.state.values, action.values)
+        next_state = self.solver.get(1, "x")
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state
