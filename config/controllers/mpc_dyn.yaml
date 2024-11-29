@@ -25,3 +25,4 @@ state_constraints:
   y_max: 10
   psi_min: -0.3
   psi_max: 0.3
+  
