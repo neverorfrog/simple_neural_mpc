@@ -10,10 +10,10 @@ from simple_neural_mpc.utils.configuration import (
     DynModelPredictiveControllerConfig,
     UnicycleConfig,
 )
-from simple_neural_mpc.utils.trajectory import Circle
+from simple_neural_mpc.utils.trajectory import Circle, Ellipse, Spiral, Eight
 
 if __name__ == "__main__":
-    reference = Circle(freq=0.2)
+    reference = Eight(freq=0.2)
     root = project_root()
 
     # Bicycle model and corresponding controller
