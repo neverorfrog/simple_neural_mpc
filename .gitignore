@@ -9,3 +9,5 @@ _l4c_generated/
 # pixi environments
 .pixi
 *.egg-info
+
+venv
