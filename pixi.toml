@@ -15,6 +15,7 @@ fbl = "python simple_neural_mpc/scripts/fbl_main.py"
 mpc_dyn_casadi = "python simple_neural_mpc/scripts/mpc_dyn_casadi_main.py"
 mpc_kin_casadi = "python simple_neural_mpc/scripts/mpc_kin_casadi_main.py"
 mpc_kin_acados = "python simple_neural_mpc/scripts/mpc_kin_acados_main.py"
+postinstall = "pip install -r external/l4casadi/requirements_build.txt && pip install -e external/l4casadi --no-build-isolation"
 
 [dependencies]
 python = "==3.11"
