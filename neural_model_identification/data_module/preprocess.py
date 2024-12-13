@@ -107,7 +107,7 @@ if __name__=="__main__":
 
     from neural_model_identification.parameters.train_params import TrainParams
     params = TrainParams()
-    params.data_path = 'neural_model_identification/data_module/trajectories'
+    params.data_path = 'neural_model_identification/data_module/trajectories_kin'
 
     print(os.listdir(params.data_path))
     
