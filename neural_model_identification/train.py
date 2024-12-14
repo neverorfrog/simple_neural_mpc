@@ -33,20 +33,21 @@ for i in tqdm(range(params.train_step)):
         # generate some outputs
 
 print("Training ended .............")
+learner.save()
+# # eval over traj_raw:
+# # -------------------
+# traj = features['eval traj']
+# # traj = features['trajectory raws'][0]
+# print("TRAJ:        ", traj.size())
+# # T = torch.arange(0, 0.3*traj.shape[0], 0.3)
+# # traj = torch.cat((traj, T.unsqueeze(-1)), dim=-1)
+# with torch.no_grad():
+#     simulated_traj = learner.simulate_trajectory(traj)
+#     simulated_traj = simulated_traj.cpu().numpy()
 
-# eval over traj_raw:
-# -------------------
-traj = features['eval traj'][0]
-traj = features['trajectory raws'][0]
-# T = torch.arange(0, 0.3*traj.shape[0], 0.3)
-# traj = torch.cat((traj, T.unsqueeze(-1)), dim=-1)
-with torch.no_grad():
-    simulated_traj = learner.simulate_trajectory(traj)
-    simulated_traj = simulated_traj.cpu().numpy()
 
-
-traj = traj.cpu().numpy()
-plt.plot(simulated_traj[:, 0], simulated_traj[:, 1], label='simulated')
-plt.plot(traj[:, 0], traj[:, 1], label='gt')
-plt.legend()
-plt.show()
+# traj = traj.cpu().numpy()
+# plt.plot(simulated_traj[:, 0], simulated_traj[:, 1], label='simulated')
+# plt.plot(traj[:, 0], traj[:, 1], label='gt')
+# plt.legend()
+# plt.show()

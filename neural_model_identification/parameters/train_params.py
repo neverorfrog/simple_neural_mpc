@@ -7,6 +7,7 @@ class TrainParams:
     # ---------------------------
 
     data_path : str = 'data_module/trajectories_dyn' # path to the folder containing the data_file
+    model_path : str = 'trained_models/model.pth'
     models: str = 'dyn_unicycle'  # --> specify which model use for generate train data
     dynamical_order : int = 1 # --> dynamical order of the model
 
