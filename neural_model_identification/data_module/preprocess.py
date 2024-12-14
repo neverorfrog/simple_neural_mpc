@@ -30,10 +30,8 @@ class DataPreProcess:
         full_dataset = [] # composed of transitions
         full_traj_raw = [] # store the original traj
         for folder in os.listdir(self.data_path):
-            
 
             full_path = os.path.join(self.data_path, folder)
-            
             # read numpy file, both states and actions. 
             trajectory_raw = self.read_files(full_path)  
 
@@ -107,7 +105,7 @@ if __name__=="__main__":
 
     from neural_model_identification.parameters.train_params import TrainParams
     params = TrainParams()
-    params.data_path = 'neural_model_identification/data_module/trajectories_kin'
+    params.data_path = 'neural_model_identification/data_module/trajectories_dyn'
 
     print(os.listdir(params.data_path))
     
