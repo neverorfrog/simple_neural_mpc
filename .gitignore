@@ -11,3 +11,5 @@ _l4c_generated/
 *.egg-info
 
 venv
+data/
+trained_models/
