@@ -51,7 +51,7 @@ class ModelPredictiveController(Controller):
             except ImportError:
                 print("Acados cython code was not found. Generating it now...")
                 self.to_generate = True
-        
+
         if self.to_generate:
             self.ocp = AcadosOcp()
             self.ocp.model = self.robot.model

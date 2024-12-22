@@ -1,51 +1,38 @@
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
+import os
 
+import numpy as np
+import torch
 from tqdm import tqdm
 
+from neural_model_identification.data_generation.preprocess import (
+    DataPreProcess,
+)
+from neural_model_identification.learner.mlp_learner import Learner
 from neural_model_identification.parameters.train_params import TrainParams
 
-from neural_model_identification.learner.mlp_learner import Learner
+torch.manual_seed(0xDEADBEEF)
+np.random.seed(0xDEADBEEF)
 
-from neural_model_identification.data_generation.preprocess import DataPreProcess
+try:
+    dataset_tensor = torch.load(os.path.join(TrainParams.data_path, "dataset.pt"))
+    print("Loaded dataset from file")
+except FileNotFoundError:
+    dataset_tensor, features = DataPreProcess().run()
+    torch.save(dataset_tensor, os.path.join(TrainParams.data_path, "dataset.pt"))
 
-torch.manual_seed(0)
-np.random.seed(0)   
+# The batch will be of shape [batch_size, n_data_points, [state_dim + action_dim]]
+loader = torch.utils.data.DataLoader(
+    dataset_tensor, batch_size=TrainParams.batch_size, shuffle=True
+)
 
-dataset_tensor, features = DataPreProcess().run()
 learner = Learner(dataset_tensor)
 
-with tqdm(total = TrainParams.train_step) as pbar:
-    for i in range(TrainParams.train_step):
-      loss = learner.train_step()
-      if i % 100 == 0:
-        pbar.set_description(f"LOSS: {loss:.2f}")
-
-    #@ TODO : implement eval
-    # if i % params.eval_step == 0:
-        
-        # eval
-        # save_weights
-        # save_metrics
-        # generate some outputs
+with tqdm(total=len(loader)) as pbar:
+    for i, batch in enumerate(loader):
+        loss = learner.train_step(batch)
+        if i % 100 == 0:
+            pbar.set_description(f"LOSS: {loss:.5f}")
+        pbar.update(1)
 
 print("Training ended .............")
 learner.save()
-# # eval over traj_raw:
-# # -------------------
-# traj = features['eval traj']
-# # traj = features['trajectory raws'][0]
-# print("TRAJ:        ", traj.size())
-# # T = torch.arange(0, 0.3*traj.shape[0], 0.3)
-# # traj = torch.cat((traj, T.unsqueeze(-1)), dim=-1)
-# with torch.no_grad():
-#     simulated_traj = learner.simulate_trajectory(traj)
-#     simulated_traj = simulated_traj.cpu().numpy()
-
-
-# traj = traj.cpu().numpy()
-# plt.plot(simulated_traj[:, 0], simulated_traj[:, 1], label='simulated')
-# plt.plot(traj[:, 0], traj[:, 1], label='gt')
-# plt.legend()
-# plt.show()

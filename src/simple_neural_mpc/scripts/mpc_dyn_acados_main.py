@@ -10,7 +10,12 @@ from simple_neural_mpc.utils.configuration import (
     DynModelPredictiveControllerConfig,
     UnicycleConfig,
 )
-from simple_neural_mpc.utils.trajectory import Circle, Ellipse, Spiral, Eight
+from simple_neural_mpc.utils.trajectory import (  # noqa: F401
+    Circle,
+    Eight,
+    Ellipse,
+    Spiral,
+)
 
 if __name__ == "__main__":
     reference = Eight(freq=0.2)

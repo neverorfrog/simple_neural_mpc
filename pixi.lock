@@ -1944,7 +1944,7 @@ packages:
 - pypi: .
   name: simple-neural-mpc
   version: 0.1.0
-  sha256: e81e936372e801597a4ede51262de84d2f337630c6acf8c69d3925722863f634
+  sha256: 00f5cc46c4404f4773a445c121be5b896a11172f74fb65cb29e7021563bab076
   requires_dist:
   - casadi
   - matplotlib
@@ -1953,6 +1953,8 @@ packages:
   - pyyaml
   - pyqt5
   - scipy
+  - torch
+  - tqdm
   requires_python: '>=3.6'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/six-1.16.0-pyh6c4a22f_0.tar.bz2

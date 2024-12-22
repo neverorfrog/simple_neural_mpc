@@ -1,8 +1,9 @@
 import importlib
 import sys
 from pathlib import Path
+
 import numpy as np
-from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
+from acados_template import AcadosOcp, AcadosOcpSolver
 
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.unicycle_dyn.unicycle_dyn_acados import (
@@ -14,15 +15,14 @@ from simple_neural_mpc.utils.configuration import (
 )
 from simple_neural_mpc.utils.trajectory import Trajectory
 
-np.random.seed(31)
 
 class ModelPredictiveController(Controller):
     def __init__(
-            self, 
-            robot: Unicycle,
-            config: DynModelPredictiveControllerConfig,
-            to_generate: bool = False,    
-        ):
+        self,
+        robot: Unicycle,
+        config: DynModelPredictiveControllerConfig,
+        to_generate: bool = False,
+    ):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
@@ -49,7 +49,7 @@ class ModelPredictiveController(Controller):
             except ImportError:
                 print("Acados cython code was not found. Generating it now...")
                 self.to_generate = True
-        
+
         if self.to_generate:
             self.ocp = AcadosOcp()
             self.ocp.model = self.robot.model
@@ -63,7 +63,7 @@ class ModelPredictiveController(Controller):
             # Mapping of variables for cost function
             self.n_opt = self.ns + self.na  # number of optimization variables
             self.n_opt_e = self.ns  # number of optimization variables at the last stage
-            Vx = np.zeros((self.n_opt, self.ns))     #7x5
+            Vx = np.zeros((self.n_opt, self.ns))  # 7x5
             Vx[: self.ns, : self.ns] = np.eye(self.ns)
             self.ocp.cost.Vx = Vx  # map state to cost
             Vu = np.zeros((self.n_opt, self.na))
@@ -140,17 +140,19 @@ class ModelPredictiveController(Controller):
         )
         ref = reference.update(t)
         pos = ref["p"]
-        psi = ref["psi"]    
+        psi = ref["psi"]
         pd = ref["pd"]
         w = ref["psid"]
         v = np.sqrt(np.sum(pd**2, axis=0))
-        
+
         for j in range(self.N):
             self.solver.set(
                 j, "yref", np.array([pos[0, j], pos[1, j], psi[j], v[j], w[j], 0, 0])
             )
         self.solver.set(
-            self.N, "yref", np.array([pos[0, self.N], pos[1, self.N], psi[self.N], v[self.N], w[self.N]])
+            self.N,
+            "yref",
+            np.array([pos[0, self.N], pos[1, self.N], psi[self.N], v[self.N], w[self.N]]),
         )
         self.k += 1
 
@@ -171,4 +173,3 @@ class ModelPredictiveController(Controller):
         print("")
 
         return action, next_state, pos, error
-        

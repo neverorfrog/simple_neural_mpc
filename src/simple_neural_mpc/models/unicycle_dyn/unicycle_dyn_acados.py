@@ -33,7 +33,6 @@ class Unicycle(Robot):
         m = self.config.car.m
         l = self.config.car.l
 
-
         # state dot variables
         x_dot, y_dot, psi_dot, v_dot, w_dot = (
             ca.MX.sym("x_dot"),
@@ -48,13 +47,13 @@ class Unicycle(Robot):
         x_dot = v * ca.cos(psi)
         y_dot = v * ca.sin(psi)
         psi_dot = w
-        v_dot = (F_l + F_r) / (2*m)
-        w_dot = (F_r - F_l) / (m*l)
+        v_dot = (F_l + F_r) / (2 * m)
+        w_dot = (F_r - F_l) / (m * l)
         f_expl = ca.vertcat(x_dot, y_dot, psi_dot, v_dot, w_dot)
 
         # Implicit ODE
         f_impl = state_dot - f_expl
-        
+
         # Create acados model
         self.model = AcadosModel()
         self.model.name = model_name
@@ -64,7 +63,13 @@ class Unicycle(Robot):
         self.model.xdot = state_dot
         self.model.u = control
         self.model.t_label = "$t$ [s]"
-        self.model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]", "$v$ [m/s]", "$\omega$ [rad/s]"]
+        self.model.x_labels = [
+            "$x$ [m]",
+            "$y$ [m]",
+            "$\psi$ [rad]",
+            "$v$ [m/s]",
+            "$\omega$ [rad/s]",
+        ]
         self.model.u_labels = ["$F_l$ [N]", "$F_r$ [N]"]
 
     @property
@@ -74,8 +79,6 @@ class Unicycle(Robot):
     def plot(self, axis: Axes, state):
         x, y, psi, _, _ = state
         plot_wheeled_robot(axis, x, y, psi)
-
-
 
 
 class UnicycleState(FancyVector):

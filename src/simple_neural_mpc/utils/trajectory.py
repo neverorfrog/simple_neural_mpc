@@ -63,6 +63,7 @@ class Circle(Trajectory):
 
         return {"p": p, "pd": pd, "pdd": pdd, "psi": psi, "psid": psid}
 
+
 class Ellipse(Trajectory):
     def __init__(self, T=6, center=np.array([0, 0]), a=2, b=1, freq=0.2):
         """
@@ -137,14 +138,17 @@ class Spiral(Trajectory):
         )
         pd = np.array(
             [
-                -r * self.omega * np.sin(self.omega * t) + self.b * np.cos(self.omega * t),
+                -r * self.omega * np.sin(self.omega * t)
+                + self.b * np.cos(self.omega * t),
                 r * self.omega * np.cos(self.omega * t) + self.b * np.sin(self.omega * t),
             ]
         )
         pdd = np.array(
             [
-                -r * (self.omega) ** 2 * np.cos(self.omega * t) - 2 * self.b * self.omega * np.sin(self.omega * t),
-                -r * (self.omega) ** 2 * np.sin(self.omega * t) + 2 * self.b * self.omega * np.cos(self.omega * t),
+                -r * (self.omega) ** 2 * np.cos(self.omega * t)
+                - 2 * self.b * self.omega * np.sin(self.omega * t),
+                -r * (self.omega) ** 2 * np.sin(self.omega * t)
+                + 2 * self.b * self.omega * np.cos(self.omega * t),
             ]
         )
 
@@ -152,6 +156,7 @@ class Spiral(Trajectory):
         psid = (pd[0] * pdd[1] - pd[1] * pdd[0]) / (pd[0] ** 2 + pd[1] ** 2)
 
         return {"p": p, "pd": pd, "pdd": pdd, "psi": psi, "psid": psid}
+
 
 class Eight(Trajectory):
     def __init__(self, T=6, center=np.array([0, 0]), a=1, freq=0.2):
@@ -174,26 +179,42 @@ class Eight(Trajectory):
         # Lemniscate of Bernoulli equation:
         # x(t) = a * cos(omega * t)
         # y(t) = a * sin(omega * t) * cos(omega * t)
-        
+
         x = self.cx + self.a * np.cos(self.omega * t)
         y = self.cy + self.a * np.sin(self.omega * t) * np.cos(self.omega * t)
-        
+
         p = np.array([x, y])
-        
+
         # Velocities (first derivatives):
-        pd = np.array([
-            -self.a * self.omega * np.sin(self.omega * t),  # Velocity in x-direction
-            self.a * self.omega * (np.cos(self.omega * t) ** 2 - np.sin(self.omega * t) ** 2),  # Velocity in y-direction
-        ])
-        
+        pd = np.array(
+            [
+                -self.a * self.omega * np.sin(self.omega * t),  # Velocity in x-direction
+                self.a
+                * self.omega
+                * (
+                    np.cos(self.omega * t) ** 2 - np.sin(self.omega * t) ** 2
+                ),  # Velocity in y-direction
+            ]
+        )
+
         # Accelerations (second derivatives):
-        pdd = np.array([
-            -self.a * (self.omega) ** 2 * np.cos(self.omega * t),  # Acceleration in x-direction
-            -2 * self.a * (self.omega) ** 2 * np.sin(self.omega * t) * np.cos(self.omega * t),  # Acceleration in y-direction
-        ])
-        
+        pdd = np.array(
+            [
+                -self.a
+                * (self.omega) ** 2
+                * np.cos(self.omega * t),  # Acceleration in x-direction
+                -2
+                * self.a
+                * (self.omega) ** 2
+                * np.sin(self.omega * t)
+                * np.cos(self.omega * t),  # Acceleration in y-direction
+            ]
+        )
+
         # Orientation and angular velocity:
         psi = np.arctan2(pd[1], pd[0])  # Heading angle
-        psid = (pd[0] * pdd[1] - pd[1] * pdd[0]) / (pd[0] ** 2 + pd[1] ** 2)  # Angular velocity
+        psid = (pd[0] * pdd[1] - pd[1] * pdd[0]) / (
+            pd[0] ** 2 + pd[1] ** 2
+        )  # Angular velocity
 
         return {"p": p, "pd": pd, "pdd": pdd, "psi": psi, "psid": psid}
