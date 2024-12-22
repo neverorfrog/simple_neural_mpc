@@ -41,7 +41,7 @@ class MLP(nn.Module):
             x = torch.tanh(fc(x))
         x = self.fc_output(x)
         return x
-
+    
 
 class Lagrangian_PINN(torch.nn.Module):
     pass

@@ -6,11 +6,12 @@ class TrainParams:
     # data generations parameters
     # ---------------------------
 
-    data_path : str = 'neural_model_identification/data_module/just_2_traj' # path to the folder containing the data_file
-    models: str = 'unicycle'  # --> specify which model use for generate train data
+    data_path : str = 'data_module/trajectories_dyn' # path to the folder containing the data_file
+    model_path : str = 'trained_models/model.pth'
+    models: str = 'dyn_unicycle'  # --> specify which model use for generate train data
     dynamical_order : int = 1 # --> dynamical order of the model
 
-    state_dim: int = 3 # dimension of the state x
+    state_dim: int = 5 # dimension of the state x
     input_dim: int = 2 # dimension of the input u
 
     n_hidden_layer: int = 3 # number of hidden layers
@@ -26,14 +27,14 @@ class TrainParams:
     # neural model parameters
     # -----------------------
     neural_net: str = 'mlp' # soon : bbn, lnn
-    add_noise_in_train: bool = True  # corrupt the input of the models [just for robustify]
+    add_noise_in_train: bool = False  # corrupt the input of the models [just for robustify]
     loss:  str = 'mse' # other option: soft-DTWD loss : https://tslearn.readthedocs.io/en/stable/auto_examples/autodiff/plot_soft_dtw_loss_for_pytorch_nn.html 
                        # for PINN: use lagrangian loss etc @TODO
     lr : float = 1e-03               # ADAM learning rate
     weight_decay: float = 1e-4      # ADAM weight decay
-    train_step: int = 10_000       # number of training steps
+    train_step: int = 30       # number of training steps
 
-    device: str = 'cuda'
+    device: str = 'cpu'
 
     # dynamics parameters
     # -------------------

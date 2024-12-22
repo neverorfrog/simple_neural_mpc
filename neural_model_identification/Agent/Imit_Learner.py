@@ -2,14 +2,16 @@ from Agent.AbstractLearner import AbstractLearner
 from Agent.neural_nets.MLP import MLP
 from Agent.dyn_utils.utils import euler_integration
 import torch
+import os
 
 
 
 class Learner(AbstractLearner):
 
-    def __init__(self, params, demos):
+    def __init__(self, params, demos, use_pretrain = False):
         
         super().__init__()
+        self.model_path = params.model_path
 
         self.batch_size = params.batch_size
         self.device = params.device
@@ -27,6 +29,10 @@ class Learner(AbstractLearner):
             n_hidden_layer=params.n_hidden_layer,
             latent_dim=params.latent_dim
         ).to(self.device)
+
+        if use_pretrain:
+            self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
+        
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
@@ -110,3 +116,5 @@ class Learner(AbstractLearner):
 
         return torch.stack(states, dim=0)
 
+    def save(self):
+        torch.save(self.model.state_dict(), self.model_path)
