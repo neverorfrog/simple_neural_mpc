@@ -6,7 +6,6 @@ import numpy as np
 def euler_integration(x, x_dot, delta_t):
     return x + x_dot * delta_t
 
-
 def normalize_state(state, x_min, x_max):
     """
     Normalize state
@@ -14,8 +13,6 @@ def normalize_state(state, x_min, x_max):
     state = (((state - x_min) / (x_max - x_min)) - 0.5) * 2
 
     return state
-
-
 
 
 def denormalize_state(state, x_min, x_max):
