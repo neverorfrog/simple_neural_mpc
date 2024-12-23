@@ -14,12 +14,12 @@ torch.manual_seed(0xDEADBEEF)
 np.random.seed(0xDEADBEEF)
 
 try:
-    dataset_tensor = torch.load(os.path.join(TrainParams.data_path, "dataset.pt"))
+    dataset_tensor = np.load(os.path.join(TrainParams.data_path, "dataset.npy"))
     print("Loaded dataset from file")
 except FileNotFoundError:
     dataset_tensor, features = DataPreProcess().run()
-    torch.save(dataset_tensor, os.path.join(TrainParams.data_path, "dataset.pt"))
-
+    np.save(os.path.join(TrainParams.data_path, "dataset.npy"), dataset_tensor)
+    
 # The batch will be of shape [batch_size, n_data_points, [state_dim + action_dim]]
 loader = torch.utils.data.DataLoader(
     dataset_tensor, batch_size=TrainParams.batch_size, shuffle=True

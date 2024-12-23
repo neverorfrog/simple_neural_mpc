@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from .highway import HighwayLayer
+from .integration import IntegrationLayer
 
 
 class MLP(nn.Module):
@@ -14,39 +15,49 @@ class MLP(nn.Module):
         dyn sys identification
     """
 
-    def __init__(self, state_dim, input_dim, latent_dim, is_highway=False, is_in_mpc=False):
+    def __init__(
+        self, state_dim, input_dim, latent_dim, is_highway=False, is_residual=False, is_in_mpc=False
+    ) -> None:
         super(MLP, self).__init__()
 
-        input_shape = state_dim + input_dim
-        
+        self.input_shape = state_dim + input_dim
+        self.state_dim = state_dim
+
         self.is_in_mpc = is_in_mpc
         self.is_highway = is_highway
+        self.is_residual = is_residual
         self.highway = HighwayLayer(state_dim)
+        self.integration = IntegrationLayer(state_dim)
 
         self.fc = nn.Sequential(
-            nn.Linear(input_shape, latent_dim),
+            nn.Linear(self.input_shape, latent_dim),
             nn.Tanh(),
             nn.Linear(latent_dim, latent_dim),
             nn.Tanh(),
             nn.Linear(latent_dim, state_dim),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         x has dimension [batch_size, state_dim + action_dim + state_dim]
         """
         if self.is_in_mpc:
-            input = x[:, :5].T
+            input = x[:, :self.input_shape].T
         else:
-            input = x[:, :5]
-            
-        x = self.fc(input)
+            input = x[:, :self.input_shape]
 
-        if self.is_highway:
-            derivative = x[:, 5:].T
-            x = self.highway(derivative, x)
+        fc_output = self.fc(input)
+
+        if self.is_residual:
+            if self.is_in_mpc:
+                derivative = x[:, self.input_shape:self.input_shape + self.state_dim].T
+            else:
+                derivative = x[:, self.input_shape:self.input_shape + self.state_dim]
+            fc_output = self.highway(derivative, fc_output)
+        elif self.is_highway:
+            fc_output = self.integration(input[:,:self.state_dim], fc_output)
 
         if self.is_in_mpc:
-            return x.T
+            return fc_output.T
         else:
-            return x
+            return fc_output

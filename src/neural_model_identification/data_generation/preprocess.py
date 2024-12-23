@@ -65,7 +65,9 @@ class DataPreProcess:
         derivatives_raw = np.load(path + "/derivatives.npy")
         times_raw = np.load(path + "/times.npy")
 
-        traj = np.hstack((states_raw[:-1, :], actions_raw, derivatives_raw, times_raw[:-1, :]))
+        traj = np.hstack(
+            (states_raw[:-1, :], actions_raw, derivatives_raw, times_raw[:-1, :])
+        )
         return torch.FloatTensor(traj)
 
     def extract_trajectory(self, trajectory) -> torch.Tensor:

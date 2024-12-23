@@ -19,18 +19,20 @@ class Learner(AbstractLearner):
         self.device = TrainParams.device
 
         self.state_dim = TrainParams.state_dim
+        self.input_dim = TrainParams.input_dim
         self.horizon = TrainParams.horizon
 
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
             latent_dim=TrainParams.latent_dim,
+            is_highway=True
         ).to(self.device)
 
         if use_pretrain:
             self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
 
-        self._optimizer = torch.optim.Adam(
+        self._optimizer = torch.optim.Adamax(
             self.model.parameters(),
             lr=TrainParams.lr,
             weight_decay=TrainParams.weight_decay,
@@ -43,19 +45,19 @@ class Learner(AbstractLearner):
         input: tensor of [batch, state_dim + input_dim + state_dim]
         predict next x_dot and integrate in the models
         """
-        x_t_dot = self.model(input_tensor)
+        next_x = self.model(input_tensor)
 
-        next_x = euler_integration(
-            input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
-        )
+        # next_x = euler_integration(
+        #     input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
+        # )
         return next_x
 
     def calc_loss(self, x: torch.Tensor) -> torch.Tensor:
         """
         here we propagate the sample through the model and calculate the loss
         """
-        states = x[:, :, : self.state_dim]  # [batch, horizon, 3]
-        actions = x[:, :, self.state_dim :]  # [batch, horizon, 2]
+        states = x[:, :, : self.state_dim]  # [batch, horizon, state_dim]
+        actions = x[:, :, self.state_dim : self.state_dim + self.input_dim]  # [batch, horizon, input_dim]
 
         next_pair = [
             torch.hstack((states[:, 0, :], actions[:, 0, :]))

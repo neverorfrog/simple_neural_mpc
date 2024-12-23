@@ -24,11 +24,10 @@ class TrainParams:
     state_dim: int = 3  # dimension of the state x
     input_dim: int = 2  # dimension of the input u
 
-    n_hidden_layer: int = 3  # number of hidden layers
-    latent_dim: int = 128  # dimension of the latent space
+    latent_dim: int = 256  # dimension of the latent space
 
-    horizon: int = 50  # prediction horizion for multi-step roll-out
-    batch_size: int = 64  # you know this
+    horizon: int = 20  # prediction horizion for multi-step roll-out
+    batch_size: int = 16  # you know this
 
     normalize_data: bool = False
     add_noise_in_reading: bool = False
@@ -43,8 +42,8 @@ class TrainParams:
         "mse"  # other option: soft-DTWD loss : https://tslearn.readthedocs.io/en/stable/auto_examples/autodiff/plot_soft_dtw_loss_for_pytorch_nn.html
     )
     # for PINN: use lagrangian loss etc @TODO
-    lr: float = 1e-3  # ADAM learning rate
-    weight_decay: float = 1e-4  # ADAM weight decay
+    lr: float = 1e-4  # ADAM learning rate
+    weight_decay: float = 1e-5  # ADAM weight decay
     train_step: int = 10000  # number of training steps
 
     device: str = "cpu"

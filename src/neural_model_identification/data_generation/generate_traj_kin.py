@@ -19,7 +19,6 @@ if __name__ == "__main__":
         pass
 
     for traj_id in range(n_traj):
-        seed = np.linspace(0, 100, 1000)
         V = np.random.randn(n_step)
         W = np.random.randn(n_step) + 2
 
@@ -28,19 +27,18 @@ if __name__ == "__main__":
         for i in range(n_step):
             unicycle.unicycle_forward(W[i], V[i])
 
-        state_buffer = unicycle.state_buffer
-        action_buffer = unicycle.action_buffer
-        derivative_buffer = unicycle.derivative_buffer
         os.makedirs(os.path.join(destination_path, f"sample_{traj_id}"), exist_ok=True)
         np.save(
-            os.path.join(destination_path, f"sample_{traj_id}/actions.npy"), action_buffer
+            os.path.join(destination_path, f"sample_{traj_id}/actions.npy"),
+            unicycle.action_buffer,
         )
         np.save(
-            os.path.join(destination_path, f"sample_{traj_id}/states.npy"), state_buffer
+            os.path.join(destination_path, f"sample_{traj_id}/states.npy"),
+            unicycle.state_buffer,
         )
         np.save(
             os.path.join(destination_path, f"sample_{traj_id}/derivatives.npy"),
-            derivative_buffer,
+            unicycle.derivative_buffer,
         )
         np.save(
             os.path.join(destination_path, f"sample_{traj_id}/times.npy"),
@@ -48,7 +46,3 @@ if __name__ == "__main__":
         )
 
         print(f"Trajectory {traj_id} generated and saved")
-
-        if plot_traj:
-            plt.plot(state_buffer[:, 0], state_buffer[:, 1])
-            plt.show()
