@@ -19,48 +19,16 @@ from simple_neural_mpc.utils.configuration.unicycle_config import UnicycleConfig
 from simple_neural_mpc.utils.misc import load_config, project_root
 from simple_neural_mpc.utils.trajectory import Circle
 
+from neural_model_identification.learner.nn.mlp import MLP
+from neural_model_identification.parameters.train_params import TrainParams
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
-
-
-class PyTorchModel(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        # self.input_layer = torch.nn.Linear(3, 64)
-        # self.hidden_layer = torch.nn.Linear(64, 64)
-        # self.output_layer = torch.nn.Linear(64, 3)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x = x.T  #! input has to be a column vector
-        # x = self.input_layer(x)
-        # x = torch.relu(x)
-        # x = self.hidden_layer(x)
-        # x = torch.relu(x)
-        # x = self.output_layer(x)
-        # x = x.T  #! output has to be a column vector
-        return x
-
-
-class PretrainedModel(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = nn.Linear(5, 256)  # 5 input nodes: x, y, theta, v, omega
-        self.fc2 = nn.Linear(256, 256)
-        self.fc3 = nn.Linear(256, 3)  # 3 output nodes: x_next, y_next, theta_next
-
-    def forward(self, x):
-        x = x.T  #! input has to be a column vector
-        x = torch.tanh(self.fc1(x))
-        x = torch.tanh(self.fc2(x))
-        x = self.fc3(x)
-        x = x.T  #! output has to be a column vector
-        return x
-
 
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
-torch_model = PretrainedModel()
+torch_model = MLP(TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim)
 torch_model.load_state_dict(
-    torch.load(f"{root}/simple_neural_mpc/scripts/unicycle_model_state_simple.pth")
+    torch.load(f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth")
 )
 torch_model.eval()
 
