@@ -50,10 +50,10 @@ class ModelPredictiveController(Controller):
         self.ocp.cost.cost_type = "LINEAR_LS"
         self.ocp.cost.cost_type_e = "LINEAR_LS"
         self.ocp.cost.W = np.diag(
-            np.array([15, 15, 0.01, 1, 1])
+            np.array([15, 15, 1, 1, 1])
         )  # weight matrix for stage cost
         self.ocp.cost.W_e = np.diag(
-            np.array([5, 5, 0.01])
+            np.array([5, 5, 1])
         )  # weight matrix for terminal cost
 
         # Constraints

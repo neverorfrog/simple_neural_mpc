@@ -24,14 +24,14 @@ class Learner(AbstractLearner):
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
-            latent_dim=TrainParams.latent_dim
+            latent_dim=TrainParams.latent_dim,
         ).to(self.device)
 
         if use_pretrain:
             self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
 
         self._optimizer = torch.optim.Adam(
-            self.model.parameters(), 
+            self.model.parameters(),
             lr=TrainParams.lr,
             weight_decay=TrainParams.weight_decay,
         )
@@ -44,7 +44,7 @@ class Learner(AbstractLearner):
         predict next x_dot and integrate in the models
         """
         x_t_dot = self.model(input_tensor)
-        
+
         next_x = euler_integration(
             input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
         )

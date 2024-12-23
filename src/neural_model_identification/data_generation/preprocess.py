@@ -63,9 +63,9 @@ class DataPreProcess:
         states_raw = np.load(path + "/states.npy")
         actions_raw = np.load(path + "/actions.npy")
         derivatives_raw = np.load(path + "/derivatives.npy")
+        times_raw = np.load(path + "/times.npy")
 
-        # we discard the last input, we just don't care about it
-        traj = np.hstack((states_raw[:-1, :], actions_raw, derivatives_raw))
+        traj = np.hstack((states_raw[:-1, :], actions_raw, derivatives_raw, times_raw[:-1, :]))
         return torch.FloatTensor(traj)
 
     def extract_trajectory(self, trajectory) -> torch.Tensor:
@@ -84,22 +84,3 @@ class DataPreProcess:
 
         transitions = torch.stack(state_batch, dim=0)
         return transitions
-
-
-def test():
-    # test the data pre-process
-    import os
-    import sys
-
-    print(os.getcwd())
-    sys.path.append(".")
-
-    from neural_model_identification.parameters.train_params import TrainParams
-
-    params = TrainParams()
-    params.data_path = "neural_model_identification/data_module/trajectories_dyn"
-
-    print(os.listdir(params.data_path))
-
-    data, _ = DataPreProcess(params).run()
-    print(data.shape)

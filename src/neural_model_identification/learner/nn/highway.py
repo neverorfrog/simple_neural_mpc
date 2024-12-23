@@ -17,9 +17,7 @@ class HighwayLayer(nn.Module):  # type: ignore[misc]
         super(HighwayLayer, self).__init__()
         self.transform = nn.Linear(dim, dim)
 
-    def forward(
-        self, x: torch.Tensor, processed_x: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, processed_x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass for the highway layer.
 

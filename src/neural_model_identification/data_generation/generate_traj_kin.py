@@ -1,5 +1,6 @@
 import os
 import shutil
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -19,8 +20,8 @@ if __name__ == "__main__":
 
     for traj_id in range(n_traj):
         seed = np.linspace(0, 100, 1000)
-        V = np.random.randn(n_step) + 2
-        W = np.sin(seed) + np.random.randn(n_step) * 1.0
+        V = np.random.randn(n_step)
+        W = np.random.randn(n_step) + 2
 
         x0, y0, theta0 = np.random.rand(3)
         unicycle = Unicycle(x0, y0, theta0)
@@ -40,6 +41,10 @@ if __name__ == "__main__":
         np.save(
             os.path.join(destination_path, f"sample_{traj_id}/derivatives.npy"),
             derivative_buffer,
+        )
+        np.save(
+            os.path.join(destination_path, f"sample_{traj_id}/times.npy"),
+            unicycle.time_buffer,
         )
 
         print(f"Trajectory {traj_id} generated and saved")

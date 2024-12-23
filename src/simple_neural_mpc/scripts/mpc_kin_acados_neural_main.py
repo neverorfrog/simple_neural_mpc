@@ -3,6 +3,8 @@ import os
 import torch
 from torch import nn
 
+from neural_model_identification.learner.nn.mlp import MLP
+from neural_model_identification.parameters.train_params import TrainParams
 from simple_neural_mpc.controllers.neural_mpc.mpc_kin_acados_neural import (
     ModelPredictiveController,
 )
@@ -19,16 +21,15 @@ from simple_neural_mpc.utils.configuration.unicycle_config import UnicycleConfig
 from simple_neural_mpc.utils.misc import load_config, project_root
 from simple_neural_mpc.utils.trajectory import Circle
 
-from neural_model_identification.learner.nn.mlp import MLP
-from neural_model_identification.parameters.train_params import TrainParams
-
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
-torch_model = MLP(TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim)
+torch_model = MLP(TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True)
 torch_model.load_state_dict(
-    torch.load(f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth")
+    torch.load(
+        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth"
+    )
 )
 torch_model.eval()
 

@@ -1,16 +1,15 @@
-import torch.nn as nn
 import torch
-
+import torch.nn as nn
 
 
 class SumOfDistancesLoss(nn.Module):
-
-    '''
+    """
     TO COMPLETE
-    '''
+    """
+
     def __init__(self):
         super(SumOfDistancesLoss, self).__init__()
-        
+
     # TO CHECK
     def forward(self, pred, target):
         distances = torch.sqrt(torch.sum((pred - target) ** 2, dim=2))

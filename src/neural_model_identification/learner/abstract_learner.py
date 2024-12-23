@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+
 import torch
+
 
 class AbstractLearner(ABC):
     def __init__(self):
@@ -15,11 +17,11 @@ class AbstractLearner(ABC):
         loss.backward()
         self.optimizer.step()
         return loss.item()
-    
+
     @property
     def optimizer(self) -> torch.optim.Optimizer:
         return self._optimizer
-    
+
     @optimizer.setter
     def optimizer(self, optimizer: torch.optim.Optimizer):
         self._optimizer = optimizer

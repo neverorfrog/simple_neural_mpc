@@ -9,7 +9,7 @@ class TrainParams:
     # data generations parameters
     # ---------------------------
     n_step = 1000  # aka number of action
-    n_traj = 500
+    n_traj = 1000  # number of trajectories
     plot_traj = False
 
     models: str = "kin_unicycle"  # --> specify which model use for generate train data

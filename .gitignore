@@ -3,6 +3,7 @@ __pycache__/
 *.egg-info
 
 # acados
+acados_generated_files/
 c_generated_code/
 acados_ocp.json
 _l4c_generated/
