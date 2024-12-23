@@ -23,6 +23,7 @@ setup(
         "scipy",
         "torch",
         "tqdm",
+        "scikit-build",
     ],
     author="Your Name",
     author_email="your.email@example.com",

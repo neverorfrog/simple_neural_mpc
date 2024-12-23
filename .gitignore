@@ -6,6 +6,7 @@ __pycache__/
 c_generated_code/
 acados_ocp.json
 _l4c_generated/
+
 # pixi environments
 .pixi
 *.egg-info
@@ -13,3 +14,4 @@ _l4c_generated/
 venv
 data/
 trained_models/
+build/

@@ -7,10 +7,11 @@ from neural_model_identification.data_generation.preprocess import (
 )
 from neural_model_identification.learner.mlp_learner import Learner
 
-torch.manual_seed(0)
-np.random.seed(0)
+torch.manual_seed(0xDEADBEEF)
+np.random.seed(0xDEADBEEF)
+
 dataset_tensor, features = DataPreProcess().run()
-learner = Learner(dataset_tensor, use_pretrain=True)
+learner = Learner(use_pretrain=True)
 
 trajectories = features["eval traj"]
 with torch.no_grad():

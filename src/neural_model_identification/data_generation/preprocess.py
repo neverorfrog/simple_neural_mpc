@@ -51,7 +51,7 @@ class DataPreProcess:
         # permute the transitions by row:
         # this stuff is done also by a dataloader but
         # in this way we can use different methods
-        self.dataset = self.dataset[torch.randperm(self.dataset.shape[0])]
+        # self.dataset = self.dataset[torch.randperm(self.dataset.shape[0])]
 
         # add any stuff for pre_processing here
         extra_features = {"trajectory raws": full_traj_raw, "eval traj": eval_traj}
@@ -62,9 +62,10 @@ class DataPreProcess:
 
         states_raw = np.load(path + "/states.npy")
         actions_raw = np.load(path + "/actions.npy")
+        derivatives_raw = np.load(path + "/derivatives.npy")
 
         # we discard the last input, we just don't care about it
-        traj = np.hstack((states_raw[:-1, :], actions_raw))
+        traj = np.hstack((states_raw[:-1, :], actions_raw, derivatives_raw))
         return torch.FloatTensor(traj)
 
     def extract_trajectory(self, trajectory) -> torch.Tensor:

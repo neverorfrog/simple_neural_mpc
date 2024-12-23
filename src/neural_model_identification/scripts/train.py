@@ -25,7 +25,7 @@ loader = torch.utils.data.DataLoader(
     dataset_tensor, batch_size=TrainParams.batch_size, shuffle=True
 )
 
-learner = Learner(dataset_tensor)
+learner = Learner()
 
 with tqdm(total=len(loader)) as pbar:
     for i, batch in enumerate(loader):

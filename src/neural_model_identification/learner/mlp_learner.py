@@ -3,14 +3,14 @@ import os
 import torch
 
 from neural_model_identification.learner.abstract_learner import AbstractLearner
+from neural_model_identification.learner.nn.mlp import MLP
 from neural_model_identification.parameters.train_params import TrainParams
-from neural_model_identification.utils.mlp import MLP
 from neural_model_identification.utils.utils import euler_integration
 
 
 class Learner(AbstractLearner):
 
-    def __init__(self, demos, use_pretrain=False):
+    def __init__(self, use_pretrain=False):
 
         super().__init__()
         self.model_path = TrainParams.model_path
@@ -18,46 +18,39 @@ class Learner(AbstractLearner):
         self.batch_size = TrainParams.batch_size
         self.device = TrainParams.device
 
-        self.loader = torch.utils.data.DataLoader(
-            demos, batch_size=self.batch_size, shuffle=True
-        )
-
-        self.demos = demos.to(self.device)  # in the form of [idx, (x, u), horizon]
-        self.n_demos = len(demos)
         self.state_dim = TrainParams.state_dim
         self.horizon = TrainParams.horizon
 
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
-            n_hidden_layer=TrainParams.n_hidden_layer,
-            latent_dim=TrainParams.latent_dim,
+            latent_dim=TrainParams.latent_dim
         ).to(self.device)
 
         if use_pretrain:
             self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
 
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
+        self._optimizer = torch.optim.Adam(
+            self.model.parameters(), 
             lr=TrainParams.lr,
             weight_decay=TrainParams.weight_decay,
         )
 
         self.mse = torch.nn.MSELoss(reduction="sum")
 
-    def propagate(self, input_tensor):
+    def propagate(self, input_tensor: torch.Tensor) -> torch.Tensor:
         """
-        input: tensor of [batch, state_dim + input_dim]
+        input: tensor of [batch, state_dim + input_dim + state_dim]
         predict next x_dot and integrate in the models
         """
         x_t_dot = self.model(input_tensor)
-
+        
         next_x = euler_integration(
             input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
         )
         return next_x
 
-    def calc_loss(self, x):
+    def calc_loss(self, x: torch.Tensor) -> torch.Tensor:
         """
         here we propagate the sample through the model and calculate the loss
         """

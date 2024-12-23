@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     destination_path = TrainParams.data_path
 
     try:
-        os.remove(os.path.join(destination_path, "dataset.pt"))
+        shutil.rmtree(destination_path)
     except FileNotFoundError:
         pass
 
