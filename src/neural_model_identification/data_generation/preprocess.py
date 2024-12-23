@@ -24,7 +24,7 @@ class DataPreProcess:
 
         full_dataset = []  # composed of transitions
         full_traj_raw = []  # store the original traj
-
+        eval_traj = []
         for folder in os.listdir(self.data_path):
 
             full_path = os.path.join(self.data_path, folder)
@@ -35,8 +35,8 @@ class DataPreProcess:
                 continue
 
             if folder.endswith("0"):
-                # save the first trajectory of the folder for evaluation
-                eval_traj = trajectory_raw
+                # save all trajectories end with "0" as test trajectories
+                eval_traj.append(trajectory_raw)
                 continue
 
             # sample some transtitions form the trajectory

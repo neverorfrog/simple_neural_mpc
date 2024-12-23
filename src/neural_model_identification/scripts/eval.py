@@ -12,14 +12,14 @@ np.random.seed(0)
 dataset_tensor, features = DataPreProcess().run()
 learner = Learner(dataset_tensor, use_pretrain=True)
 
-traj = features["eval traj"]
-print("TRAJ:        ", traj.size())
+trajectories = features["eval traj"]
 with torch.no_grad():
-    simulated_traj = learner.simulate_trajectory(traj)
-    simulated_traj = simulated_traj.cpu().numpy()
+    for traj in trajectories:
+        simulated_traj = learner.simulate_trajectory(traj)
+        simulated_traj = simulated_traj.cpu().numpy()
 
-traj = traj.cpu().numpy()
-plt.plot(simulated_traj[:, 0], simulated_traj[:, 1], label="simulated")
-plt.plot(traj[:, 0], traj[:, 1], label="gt")
-plt.legend()
-plt.show()
+        traj_array = traj.cpu().numpy()
+        plt.plot(simulated_traj[:, 0], simulated_traj[:, 1], label="simulated")
+        plt.plot(traj_array[:, 0], traj_array[:, 1], label="gt")
+        plt.legend()
+        plt.show()
