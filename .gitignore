@@ -10,4 +10,6 @@ _l4c_generated/
 .pixi
 *.egg-info
 
-venv
+.venv
+.vscode
+.idea
