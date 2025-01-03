@@ -9,11 +9,11 @@ In this file we implement kinematic unicycle to generate trajectories for traini
 # Explicit ODE
 class Unicycle():
     
-    def __init__(self, x0, y0, theta0):
+    def __init__(self, x0, y0, theta0, delta_t=0.3):
         self.x = x0
         self.y = y0
         self.theta = theta0
-        self.dt = 0.1
+        self.dt = delta_t
         self.state_buffer = np.empty([0, 3], dtype=np.float32)
         self.action_buffer = np.empty([0, 2], dtype=np.float32)
 

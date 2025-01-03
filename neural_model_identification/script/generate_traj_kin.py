@@ -1,20 +1,22 @@
 import numpy as np
-import os
+import os, sys
+sys.path.append('.')
+
 import matplotlib.pyplot as plt
-from neural_model_identification.models.unicycle_kin import Unicycle
+from models.unicycle_kin import Unicycle
 
 if __name__ == '__main__': 
-    # print(os.getcwd())
+    print(os.getcwd())
 
     n_step = 1000  # aka number of action
-    n_traj = 10 
-    plot_traj = False
-    destination_path = '../data_module/trajectories_kin/'
+    n_traj = 10
+    plot_traj = True
+    destination_path = 'data_module/trajectories_kin/'
     for traj_id in range(n_traj):
 
         seed = np.linspace(0, 100, 1000)
         V = np.random.randn(n_step) + 4
-        W = np.sin(seed) + np.random.randn(n_step)*0.7
+        W = np.sin(seed)*0.1 + np.random.randn(n_step)*0.3
         
         x0, y0, theta0 = np.random.rand(3)
         unicycle = Unicycle(x0, y0, theta0)
