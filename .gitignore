@@ -13,3 +13,17 @@ _l4c_generated/
 .venv
 .vscode
 .idea
+
+.DS_Store
+
+# latex
+*.aux
+*.log
+*.fls
+*.out
+*.bbl
+*.blg
+*.toc
+*.fdb_latexmk
+*.synctex
+*.synctex.gz
