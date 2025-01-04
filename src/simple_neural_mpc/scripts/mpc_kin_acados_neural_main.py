@@ -26,12 +26,15 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
 torch_model = MLP(
-    TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
+    TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, use_pinn=True
 )
 torch_model.load_state_dict(
     torch.load(
-        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth"
-    )
+        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/pinn_c_unikin.pth",
+        weights_only=True,
+        map_location=torch.device('cpu')
+    ), 
+    strict=False
 )
 torch_model.eval()
 
@@ -43,7 +46,6 @@ if __name__ == "__main__":
         f"{root}/config/models/unicycle.yaml",
         UnicycleConfig,
     )
-
     robot = Unicycle(config=robot_config, neural_network=torch_model)
 
     mpc_config = load_config(
