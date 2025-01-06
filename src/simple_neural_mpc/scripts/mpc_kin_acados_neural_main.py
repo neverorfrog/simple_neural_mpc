@@ -3,7 +3,7 @@ import os
 import torch
 from torch import nn
 
-from neural_model_identification.learner.nn.mlp import MLP
+from neural_model_identification.learner.nn.mlp import MLP_Pinn
 from neural_model_identification.parameters.train_params import TrainParams
 from simple_neural_mpc.controllers.neural_mpc.mpc_kin_acados_neural import (
     ModelPredictiveController,
@@ -25,7 +25,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
-torch_model = MLP(
+torch_model = MLP_Pinn(
     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, use_pinn=True
 )
 torch_model.load_state_dict(
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         ModelPredictiveControllerConfig,
     )
 
-    controller = ModelPredictiveController(robot, mpc_config)
+    controller = ModelPredictiveController(robot, mpc_config, to_generate=True)
 
     # Simulation
     simulation = TrajectoryTrackingSimulation("neural_mpc", robot, controller, reference)

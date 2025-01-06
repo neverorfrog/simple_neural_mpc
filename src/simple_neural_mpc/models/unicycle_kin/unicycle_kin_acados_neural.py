@@ -45,7 +45,7 @@ class Unicycle(Robot):
         # l4casadi model
         self.l4casadi_model = l4c.L4CasADi(neural_network, name=model_name)
         neural_dyn = self.l4casadi_model(
-            ca.vertcat(state, t, control)
+            ca.vertcat(state, control, t)
         )  # neural network approximated dynamics (MX)
 
         # Explicit ODE
