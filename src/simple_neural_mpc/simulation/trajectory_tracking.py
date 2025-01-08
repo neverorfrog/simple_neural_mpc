@@ -194,6 +194,4 @@ class TrajectoryTrackingSimulation:
                 dpi=180,
             )
         plt.ion()  # interactive mode on
-        fig_manager: FigureManagerBase = plt.get_current_fig_manager()
-        fig_manager.window.showMaximized()
         plt.show(block=True)

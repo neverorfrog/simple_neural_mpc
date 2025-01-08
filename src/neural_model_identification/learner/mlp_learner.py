@@ -26,7 +26,7 @@ class Learner(AbstractLearner):
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
             latent_dim=TrainParams.latent_dim,
-            is_highway=True
+            is_highway=True,
         ).to(self.device)
 
         if use_pretrain:
@@ -57,7 +57,9 @@ class Learner(AbstractLearner):
         here we propagate the sample through the model and calculate the loss
         """
         states = x[:, :, : self.state_dim]  # [batch, horizon, state_dim]
-        actions = x[:, :, self.state_dim : self.state_dim + self.input_dim]  # [batch, horizon, input_dim]
+        actions = x[
+            :, :, self.state_dim : self.state_dim + self.input_dim
+        ]  # [batch, horizon, input_dim]
 
         next_pair = [
             torch.hstack((states[:, 0, :], actions[:, 0, :]))

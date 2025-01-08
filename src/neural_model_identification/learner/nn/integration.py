@@ -1,6 +1,8 @@
 import torch
 from torch import nn
+
 from neural_model_identification.parameters.train_params import TrainParams
+
 
 class IntegrationLayer(nn.Module):  # type: ignore[misc]
     """

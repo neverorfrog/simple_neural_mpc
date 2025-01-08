@@ -28,7 +28,7 @@ class TrainParams:
 
     # batch_size must be such that the following expression returns an integer number (not a float)
     # otherwise the last batch for the training has different dimensions and it does not work.
-    # Expression:           ((n_steps - horizon) * n_traj) / batch_size 
+    # Expression:           ((n_steps - horizon) * n_traj) / batch_size
     horizon: int = 50  # prediction horizion for multi-step roll-out
     batch_size: int = 60  # you know this
 
