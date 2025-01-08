@@ -9,8 +9,11 @@ version = "0.1.0"
 [activation]
 env = { PYTHONPATH = "${PYTHONPATH}:src"}
 
+[pypi-options]
+no-build-isolation = ["l4casadi"]
+
 [tasks]
-build-acados = "cd external/acados && mkdir -p build && cd build && cmake -DACADOS_WITH_QPOASES=ON -DACADOS_WITH_OSQP=ON .. && make -j8"
+build-acados = "cd external/acados && mkdir -p build && cd build && cmake -DACADOS_WITH_QPOASES=ON -DACADOS_WITH_OSQP=ON -DACADOS_PYTHON=ON .. && make install -j8"
 fbl = "python src/simple_neural_mpc/scripts/fbl_main.py"
 mpc_dyn_casadi = "python src/simple_neural_mpc/scripts/mpc_dyn_casadi_main.py"
 mpc_kin_casadi = "python src/simple_neural_mpc/scripts/mpc_kin_casadi_main.py"
@@ -20,10 +23,10 @@ dyn-data = "python src/neural_model_identification/data_generation/generate_traj
 kin-data = "python src/neural_model_identification/data_generation/generate_traj_kin.py"
 train = "python src/neural_model_identification/scripts/train.py && python src/neural_model_identification/scripts/eval.py"
 eval = "python src/neural_model_identification/scripts/eval.py"
-postinstall = "pixi run pip install -r external/l4casadi/requirements_build.txt && pip install -e external/l4casadi --no-build-isolation"
+postinstall = "pip install -r external/l4casadi/requirements_build.txt && pip install -e external/l4casadi --no-build-isolation"
 
 [dependencies]
-python = "==3.11"
+python = "==3.11.10"
 matplotlib = ">=3.9.2,<4"
 omegaconf = ">=2.3.0,<3"
 pyyaml = ">=6.0.2,<7"
@@ -33,9 +36,15 @@ numpy = ">=2.2.1,<3"
 [pypi-dependencies]
 pyqt5 = "*"
 torch = "*"
-setuptools = ">=75.6.0, <76"
+setuptools = ">=75.7.0, <76"
 casadi = "==3.6.4"
 tqdm = ">=4.67.1, <5"
+scikit-build = ">=0.18.1, <0.19"
+cmake = ">=3.31.2, <4"
+ninja = ">=1.11.1.3, <2"
 acados_template = {path = "external/acados/interfaces/acados_template", editable = true}
-neural_model_identification = {path = "." , editable = true}
 simple_neural_mpc = { path = ".", editable = true}
+# l4casadi = { path = "external/l4casadi", editable = true}
+l4acados = { path = "external/l4acados", editable = true}
+ipykernel = ">=6.29.5, <7"
+
