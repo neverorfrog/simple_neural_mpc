@@ -9,16 +9,24 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{amsmath}
 
+\setlength {\marginparwidth }{2cm}
+\usepackage{todonotes}
+
 \title{MPC-PiNNs technique applied to Quadrotors}
-\author{}
+\author{Authors}
 \date{\today} % delete this line to display the current date
 
 \begin{document}
 \setlength{\parindent}{0pt}
 
 \maketitle
+\todototoc
+\listoftodos
 \tableofcontents
+\clearpage
 \section{Introduction} \subfile{sections/introduction.tex}
 \section{Model Predictive Control} \subfile{sections/mpc.tex}
-
+\section{Physical Informed Neural Network} \subfile{sections/pinn.tex}
+\section{Results} \subfile{sections/results.tex}
+\section{Conclusions} \subfile{sections/conclusion.tex}
 \end{document}
