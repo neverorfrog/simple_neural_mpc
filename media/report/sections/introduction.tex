@@ -1,3 +1,28 @@
 \todo[inline]{outline of the work}
 \todo[inline]{unicycle approach}
 \todo[inline]{uav apporach}
+
+Model Predictive Control (MPC) has emerged as a powerful control strategy
+in robotics due to its ability to handle constraints and optimize system
+behavior over a prediction horizon. When combined with neural networks,
+which can learn complex system dynamics, it creates a promising framework
+for controlling nonlinear systems.
+
+This report presents the implementation and analysis of a Neural Model
+Predictive Control (NMPC) scheme applied to a quadrotor. The
+unicycle serves as an excellent test case due to its nonlinear dynamics, 
+making it both challenging and representative of real-world robotic systems.
+Besides, we followed a bottom-up approach, testing the pipeline first on a unicycle, 
+which still has a nonlinear dynamics, but is easier to treat due a simpler model and faster
+prototyping possiblities.
+
+Our approach integrates deep learning techniques to approximate the
+unicycle's dynamics, which are then utilized within an MPC framework to
+generate optimal control inputs. We explore the effectiveness of this
+method in trajectory tracking tasks, comparing it with traditional control
+approaches.
+
+The following sections detail the theoretical foundations, implementation
+specifics, and experimental results of our neural MPC system. We also
+discuss the challenges encountered and potential improvements for future
+work.
