@@ -44,7 +44,7 @@ torch_model.load_state_dict(
 torch_model.eval()
 
 if __name__ == "__main__":
-    reference = Circle(freq=0.01)
+    reference = Circle(freq=0.1)
 
     # Bicycle model and corresponding controller
     robot_config = load_config(
@@ -62,4 +62,4 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = TrajectoryTrackingSimulation("neural_mpc", robot, controller, reference)
-    simulation.run(N=100, animate=True, save=False)
+    simulation.run(N=200, animate=True, save=False)

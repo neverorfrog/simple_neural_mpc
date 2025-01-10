@@ -4,6 +4,12 @@ import torch.nn as nn
 from .highway import HighwayLayer
 from .integration import IntegrationLayer
 
+class Sine(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.sin(x)
 
 class MLP(nn.Module):
     """
@@ -37,14 +43,9 @@ class MLP(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(self.input_shape, latent_dim),
-            nn.Tanh(),
-            # nn.Dropout(p=0.4),
+            Sine(),
             nn.Linear(latent_dim, latent_dim),
-            nn.Tanh(),
-            # nn.Dropout(p=0.4),
-            # nn.Linear(latent_dim, latent_dim),
-            # nn.Tanh(),
-            # nn.Dropout(p=0.4),
+            Sine(),
             nn.Linear(latent_dim, state_dim),
         )
 
@@ -91,7 +92,7 @@ class MLP_Pinn(nn.Module):
             state_dim + input_dim + 1 if use_pinn else state_dim + input_dim
         )
         self.state_dim = state_dim
-
+        
         self.fc = nn.Sequential(
             nn.Linear(self.input_shape, 32),
             nn.Tanh(),

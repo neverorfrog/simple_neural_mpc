@@ -25,7 +25,7 @@ class Learner(AbstractLearner):
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
-            latent_dim=TrainParams.latent_dim
+            latent_dim=TrainParams.latent_dim,
         ).to(self.device)
 
         if use_pretrain:

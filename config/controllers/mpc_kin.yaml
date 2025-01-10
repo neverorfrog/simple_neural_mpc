@@ -1,12 +1,12 @@
 # prediction horizon
-dt: 0.1
+dt: 0.01
 horizon: 100
 color: 'red'
 
 # weights for the cost function
 cost_weights:
-  ex: 10
-  ey: 0.5
+  ex: 0.1
+  ey: 0.1
   v: 0.01
   w: 0.01
 

@@ -19,9 +19,10 @@ if __name__ == "__main__":
         pass
 
     for traj_id in range(n_traj):
-        V = np.random.randn(n_step)
-        W = np.random.randn(n_step) + 2
-
+        
+        V = np.full(n_step, np.random.rand() * 5.0)
+        W = np.full(n_step, np.random.rand() * 2 * np.pi) 
+        
         x0, y0, theta0 = np.random.rand(3)
         unicycle = Unicycle(x0, y0, theta0)
         for i in range(n_step):
