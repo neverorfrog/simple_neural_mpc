@@ -16,3 +16,14 @@ venv
 data/
 trained_models/
 build/
+
+
+# latex
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.tdo
+*.synctex.gz
