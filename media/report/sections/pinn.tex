@@ -1,4 +1,50 @@
-In our implementation, we have used a Physical Informed Neural Network to predict the next state of the system, given the control input obtained from the Model Predictive Control.
+Physical Informed Neural Networks (PiNNs) are a recent approach that exploit physical laws inside the learning process of a Neural Network.
+As previously stated, we have used a bottom-up approach by first testing this approach tu a Unicycle. This robot still has a nonlinear dynamics but it's way simpler than the quadrotor one. Its configuration vector is composed by the cartesian position $(x,y)$ and its orientation angle $\theta$. 
+\begin{align}
+    \begin{cases}
+        \dot{x} = v \cos(\theta) \\
+        \dot{y} = v \sin(\theta) \\
+        \dot{\theta} = w \\
+    \end{cases}
+\end{align}
+
+\begin{align}
+    \mathbf{R}_{\text{RPY}} &=
+        \begin{bmatrix}
+        \cos\psi \cos\theta & \cos\psi \sin\theta \sin\phi - \sin\psi \cos\phi & \cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
+        \sin\psi \cos\theta & \sin\psi \sin\theta \sin\phi + \cos\psi \cos\phi & \sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
+        -\sin\theta & \cos\theta \sin\phi & \cos\theta \cos\phi
+        \end{bmatrix}
+    \\
+    \dot{\mathbf{v}} &= 
+        \begin{bmatrix}
+    0.0 \\
+    0.0 \\
+    -\text{g}
+        \end{bmatrix}
+    +
+    \mathbf{R}_{\text{RPY}} \cdot
+    \begin{bmatrix}
+        0.0 \\
+        0.0 \\
+        \frac{T}{m}
+    \end{bmatrix}
+\end{align}
+
+\begin{align}
+    \begin{cases}
+        \dot{x} = v_{x}\\
+        \dot{y} = v_{y}\\
+        \dot{z} = v_{z}\\
+        \dot{v}_{x} = (\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+        \dot{v}_{y} = (\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+        \dot{v}_{z} = (\cos\theta \cos\phi) \frac{T}{m} -g\\
+        \dot{\phi} = \\
+        \dot{\theta} = \\
+        \dot{\psi} = \\ 
+    \end{cases}  
+\end{align}
+In our implementation, we have used a PiNNs to predict the next state of the system, given the control input obtained from the Model Predictive Control.
 \todo[inline]{losses}
 \todo[inline]{pipeline}
 \todo[inline]{image pinn}
