@@ -1,9 +1,8 @@
 import os
 
 import torch
-from torch import nn
 
-from neural_model_identification.learner.nn.mlp import MLP_Pinn
+from neural_model_identification.learner.nn.mlp import MLP_Pinn, MLP
 from neural_model_identification.parameters.train_params import TrainParams
 from simple_neural_mpc.controllers.neural_mpc.mpc_kin_acados_neural import (
     ModelPredictiveController,
@@ -25,21 +24,27 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
-torch_model = MLP_Pinn(
-    TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, use_pinn=True
+
+# torch_model = MLP_Pinn(
+#     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, use_pinn=True
+# )
+
+torch_model = MLP(
+    TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
 )
+
 torch_model.load_state_dict(
     torch.load(
-        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/pinn_c_unikin.pth",
+        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth",
         weights_only=True,
-        map_location=torch.device('cpu')
-    ), 
-    strict=False
+        map_location=torch.device("cpu"),
+    ),
+    strict=False,
 )
 torch_model.eval()
 
 if __name__ == "__main__":
-    reference = Circle(freq=0.2)
+    reference = Circle(freq=0.01)
 
     # Bicycle model and corresponding controller
     robot_config = load_config(
@@ -57,4 +62,4 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = TrajectoryTrackingSimulation("neural_mpc", robot, controller, reference)
-    simulation.run(N=500, animate=True, save=False)
+    simulation.run(N=100, animate=True, save=False)

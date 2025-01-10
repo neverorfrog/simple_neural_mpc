@@ -9,7 +9,7 @@ class TrainParams:
     # data generations parameters
     # ---------------------------
     n_step = 1000  # aka number of action
-    n_traj = 1000  # number of trajectories
+    n_traj = 200  # number of trajectories
     plot_traj = False
 
     models: str = "kin_unicycle"  # --> specify which model use for generate train data
@@ -24,13 +24,13 @@ class TrainParams:
     state_dim: int = 3  # dimension of the state x
     input_dim: int = 2  # dimension of the input u
 
-    latent_dim: int = 64  # dimension of the latent space
+    latent_dim: int = 256  # dimension of the latent space
 
     # batch_size must be such that the following expression returns an integer number (not a float)
     # otherwise the last batch for the training has different dimensions and it does not work.
     # Expression:           ((n_steps - horizon) * n_traj) / batch_size
-    horizon: int = 50  # prediction horizion for multi-step roll-out
-    batch_size: int = 60  # you know this
+    horizon: int = 20  # prediction horizion for multi-step roll-out
+    batch_size: int = 16  # you know this
 
     normalize_data: bool = False
     add_noise_in_reading: bool = False
@@ -45,8 +45,8 @@ class TrainParams:
         "mse"  # other option: soft-DTWD loss : https://tslearn.readthedocs.io/en/stable/auto_examples/autodiff/plot_soft_dtw_loss_for_pytorch_nn.html
     )
     # for PINN: use lagrangian loss etc @TODO
-    lr: float = 1e-3  # ADAM learning rate
-    weight_decay: float = 1e-4  # ADAM weight decay
+    lr: float = 1e-4  # ADAM learning rate
+    weight_decay: float = 1e-5  # ADAM weight decay
     train_step: int = 10000  # number of training steps
 
     device: str = "cpu"

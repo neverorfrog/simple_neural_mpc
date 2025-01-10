@@ -1,8 +1,8 @@
-import numpy as np
-from pathlib import Path
 import importlib
 import sys
+from pathlib import Path
 
+import numpy as np
 from acados_template import AcadosOcp, AcadosOcpSolver
 
 from simple_neural_mpc.controllers.controller import Controller
@@ -17,9 +17,13 @@ from simple_neural_mpc.utils.trajectory import Trajectory
 
 np.random.seed(31)
 
-
 class ModelPredictiveController(Controller):
-    def __init__(self, robot: Unicycle, config: KinModelPredictiveControllerConfig, to_generate: bool = False,):
+    def __init__(
+        self,
+        robot: Unicycle,
+        config: KinModelPredictiveControllerConfig,
+        to_generate: bool = False,
+    ):
         """Optimizer Initialization"""
         self.config = config
         self.robot = robot
@@ -87,13 +91,13 @@ class ModelPredictiveController(Controller):
             self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
 
             # Solver Options
-            self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
+            self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_OSQP"
             self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            self.ocp.solver_options.integrator_type = "IRK"
-            self.ocp.solver_options.nlp_solver_type = "SQP"
+            self.ocp.solver_options.integrator_type = "DISCRETE"
+            self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
             self.ocp.solver_options.tol = 1e-3
             self.ocp.solver_options.qp_tol = 1e-3
-            self.ocp.solver_options.nlp_solver_max_iter = 100
+            self.ocp.solver_options.nlp_solver_max_iter = 500
             self.ocp.solver_options.qp_solver_iter_max = 100
             self.ocp.solver_options.print_level = 0
 
@@ -111,7 +115,7 @@ class ModelPredictiveController(Controller):
 
             # Debug Stuff
             self.ocp.solver_options.print_level = 0
-
+            
             # Generate c code
             AcadosOcpSolver.generate(self.ocp, json_file=json_file)
             AcadosOcpSolver.build(self.ocp.code_export_directory, with_cython=True)
@@ -123,15 +127,6 @@ class ModelPredictiveController(Controller):
             self.solver: AcadosOcpSolver = acados_ocp_solver_pyx.AcadosOcpSolverCython(
                 self.robot.model.name, self.ocp.solver_options.nlp_solver_type, self.N
             )
-
-    # def _init_solver(self) -> None:
-    #     self.solver = AcadosOcpSolver(self.ocp)
-    #     self.state_prediction = np.zeros((self.ns, self.N + 1))
-    #     self.action_prediction = np.zeros((self.na, self.N))
-    #     for n in range(self.N + 1):
-    #         self.solver.set(n, "x", self.state_prediction[:, n])
-    #     for n in range(self.N):
-    #         self.solver.set(n, "u", self.action_prediction[:, n])
 
     def command(self, robot: Unicycle, reference: Trajectory):
         # generate trajectory for next N steps
@@ -157,6 +152,7 @@ class ModelPredictiveController(Controller):
 
         # Solve the optimization problem
         action = self.solver.solve_for_x0(robot.state.values)
+        print(action)
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
 

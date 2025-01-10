@@ -31,7 +31,6 @@ class Unicycle(Robot):
         v, w = self.input.variables
         control = ca.vertcat(v, w)
 
-        t = ca.MX.sym("t")
         t = 0.1
 
         # state dot variables
@@ -42,17 +41,20 @@ class Unicycle(Robot):
         )
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
 
+        # Explicit ODE
+        x_dot = v * ca.cos(psi)
+        y_dot = v * ca.sin(psi)
+        psi_dot = w
+        # f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
+        f_expl = neural_dyn
+        
         # l4casadi model
         self.l4casadi_model = l4c.L4CasADi(neural_network, name=model_name)
         neural_dyn = self.l4casadi_model(
             ca.vertcat(state, control, t)
         )  # neural network approximated dynamics (MX)
-
-        # Explicit ODE
-        x_dot = v * ca.cos(psi)
-        y_dot = v * ca.sin(psi)
-        psi_dot = w
-        f_expl = neural_dyn
+        f_disc = neural_dyn
+        # f_disc = ca.vertcat(x,y,psi) + t * ca.vertcat(x_dot, y_dot, psi_dot)
 
         # Implicit ODE
         f_impl = state_dot - f_expl
@@ -62,6 +64,7 @@ class Unicycle(Robot):
         model.name = model_name
         model.f_expl_expr = f_expl
         model.f_impl_expr = f_impl
+        model.disc_dyn_expr = f_disc
         model.x = state
         model.xdot = state_dot
         model.u = control

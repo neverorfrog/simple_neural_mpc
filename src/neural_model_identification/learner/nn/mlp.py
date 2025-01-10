@@ -23,13 +23,10 @@ class MLP(nn.Module):
         is_highway=False,
         is_residual=False,
         is_in_mpc=False,
-        use_pinn=False,
     ) -> None:
         super(MLP, self).__init__()
 
-        self.input_shape = (
-            state_dim + input_dim + 1 if use_pinn else state_dim + input_dim
-        )
+        self.input_shape = state_dim + input_dim
         self.state_dim = state_dim
 
         self.is_in_mpc = is_in_mpc

@@ -1,5 +1,5 @@
 # prediction horizon
-dt: 0.01
+dt: 0.1
 horizon: 100
 color: 'red'
 
