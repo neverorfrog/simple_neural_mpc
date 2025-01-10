@@ -25,14 +25,13 @@ class Learner(AbstractLearner):
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
-            latent_dim=TrainParams.latent_dim,
-            is_highway=True,
+            latent_dim=TrainParams.latent_dim
         ).to(self.device)
 
         if use_pretrain:
             self.model.load_state_dict(torch.load(self.model_path, weights_only=True))
 
-        self._optimizer = torch.optim.Adamax(
+        self._optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=TrainParams.lr,
             weight_decay=TrainParams.weight_decay,
@@ -45,12 +44,14 @@ class Learner(AbstractLearner):
         input: tensor of [batch, state_dim + input_dim + state_dim]
         predict next x_dot and integrate in the models
         """
-        next_x = self.model(input_tensor)
-
-        # next_x = euler_integration(
-        #     input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
-        # )
-        return next_x
+        
+        if TrainParams.is_pinn is True:
+            return self.model(input_tensor)
+        else:
+            x_t_dot = self.model(input_tensor)
+            return euler_integration(
+                input_tensor[:, : self.state_dim], x_t_dot, delta_t=TrainParams.dt
+            )
 
     def calc_loss(self, x: torch.Tensor) -> torch.Tensor:
         """
