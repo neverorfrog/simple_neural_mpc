@@ -30,6 +30,17 @@ As previously stated, we have used a bottom-up approach by first testing this ap
         \frac{T}{m}
     \end{bmatrix}
 \end{align}
+In our implementation, we have used a simplified dynamic model for the quadrotor instead of the simplified second order system.
+\begin{align}
+    \begin{cases}
+        \ddot{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+        \ddot{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+        \ddot{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
+        \ddot{\phi} = \frac{\tau_{\phi}}{I_{x}}\\
+        \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}}\\
+        \ddot{\psi} = \frac{\tau_{\psi}}{I_{z}}\\ 
+    \end{cases}  
+\end{align}
 
 \begin{align}
     \begin{cases}

@@ -1,3 +1,14 @@
 \todo[inline]{uav simplified model}
 \todo[inline]{uav complete model}
 \todo[inline]{mpc structure}
+
+Model Predictive Control (MPC), it is a control technique used to solve an optimization problem at each sampling instant. The controller predicts the future behavior of the system using a mathematical model and determines a sequence of control inputs that minimize a predefined cost function while satisfying state and input constraints.
+
+\begin{align}
+    \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
+    \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
+    & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
+    & x(0) = x_{\text{0}}
+\end{align}
+
+One of the main advantages of this control approach is the ability to handle multivariable interactions and constraints. However, solving the above optimization problem in real time can be computationally challenging, especially for large-scale or highly nonlinear systems. This is one reason why neural networks have been employed to either approximate the system model or enhance the optimization process. In our case, we have used Neural Networks to predict the next state after the application of the control input given by the MPC.
