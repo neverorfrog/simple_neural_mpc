@@ -1,0 +1,29 @@
+The model must be well-defined to be used in NMPC, in such a way 
+to obtain reliable predictions of system behavior in response to various control actions.
+Neural networks are universal approximators, and they can be used both for designing 
+the entire dynamic model of a system and approximating the disturbances and noises 
+a system can be affected.
+Our purpose is to approximate the entire kinematic model of an unicycle with a neural model,
+due to its low complexity. 
+In this section we will start describinf briefly the kinematic model of a unicycle, and then 
+we will describe the neural architecture used to approximate it.
+
+\subsection{Unicycle kinematic model}
+The kinematic model of the unicyle is a simplified representation of the movement of the vehicle
+in temrs of position and orientation. It assumes there will be no lateral deformations. 
+The state space is represented by its position and orientational
+\begin{equation}
+    [x, y, \theta]
+\end{equation} 
+while the input actions are represented by longitudinal and angular velocities the vehicle can 
+assume
+\begin{equation}
+    [v, \omega]
+\end{equation}
+So, the motion of the unicycle can be described through the following equations:
+\begin{eqnarray}
+    \dot{x}(t) &=& v(t) \cos(\theta(t)) \\
+    \dot{y}(t) &=& v(t) \sin(\theta(t)) \\
+    \dot{\theta}(t) &=& \omega(t) \\
+\end{eqnarray}
+
