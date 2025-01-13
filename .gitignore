@@ -28,3 +28,5 @@ _l4c_generated/
 *.synctex
 *.synctex.gz
 *.tdo
+*.snm
+*.nav

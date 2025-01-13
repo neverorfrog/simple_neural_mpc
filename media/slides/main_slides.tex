@@ -1,0 +1,48 @@
+\documentclass{beamer}
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+\usepackage{beamerthemesintef} % comment this line + everything with '%%%' if you don't have the theme installed
+
+\titlebackground*{assets/background} %%%
+\title{MPC-PiNNs technique applied to Quadrotors}
+\subtitle{Elective in Robotics [UAV] Course Project}
+\course{Master's Degree in Artificial Intelligence and Robotics} %%%
+\author{{Authors}} %%%
+
+\IDnumber{matricole} %%%
+\date{Academic Year 2024/2025}
+
+\begin{document}
+\maketitle
+\section{Introduction}
+\section{Models}
+\begin{frame}{Unicycle}
+    \begin{align}
+        \begin{cases}
+            \dot{x} = v \cos(\theta) \\
+            \dot{y} = v \sin(\theta) \\
+            \dot{\theta} = w \\
+        \end{cases}
+    \end{align}
+\end{frame}
+
+\begin{frame}{Quadorotor}
+    
+\end{frame}
+\section{Model Predictive Control}
+\section{Physical Informed Neural Networks}
+\begin{frame}{PiNNs}
+    Physical Informed Neural
+Networks (PiNNs) propose an alternative approach where the solution is approxi-
+mated by a neural network that is trained not only on data but also by enforcing
+the underlying physical laws via the differential equations.
+
+\begin{align}
+    \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2 \\
+    \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
+\end{align}
+
+\end{frame}
+\section{Results}
+\section{Conclusions}
+% \backmatter add this later
+\end{document}

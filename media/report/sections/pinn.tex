@@ -1,5 +1,17 @@
-Physical Informed Neural Networks (PiNNs) are a recent approach that exploit physical laws inside the learning process of a Neural Network.
-As previously stated, we have used a bottom-up approach by first testing this approach tu a Unicycle. This robot still has a nonlinear dynamics but it's way simpler than the quadrotor one. Its configuration vector is composed by the cartesian position $(x,y)$ and its orientation angle $\theta$. 
+Traditional methods for solving differential equations, such as finite element or finite difference methods, often require discretization of the domain and can be computationally expensive for high-dimensional problems. Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
+The overall loss function $\mathcal{L}$ used is composed by the sum of two terms, which are the data loss $\mathcal{L}_{data}$ and the physics loss $\mathcal{L}_{phy}$. 
+\begin{equation}
+    \mathcal{L}(\theta) = \mathcal{L}_{\text{data}}(\theta) + \mathcal{L}_{\text{phys}}(\theta),
+\end{equation}
+The first term defines the discrepancy between the prediction of the network and the observed data, while the second one specifies the correct modeling of the differential equation.
+Usually $\mathcal{L}_{data}$ is define as the mean squared error between the prediction and the ground truth, while $\mathcal{L}_{phy}$ is defined using the residual of the differential equation.
+
+\begin{align}
+    \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2 \\
+    \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
+\end{align}
+
+As previously stated, we have used a bottom-up approach by first testing this approach to a Unicycle. This robot is characterized by simple kinematic equations. Its configuration vector is composed by the cartesian position $(x,y)$ and its orientation angle $\theta$, while the control inputs are the driving velocity $v$ and the steering velocity $w$.
 \begin{align}
     \begin{cases}
         \dot{x} = v \cos(\theta) \\
@@ -8,54 +20,17 @@ As previously stated, we have used a bottom-up approach by first testing this ap
     \end{cases}
 \end{align}
 
-\begin{align}
-    \mathbf{R}_{\text{RPY}} &=
-        \begin{bmatrix}
-        \cos\psi \cos\theta & \cos\psi \sin\theta \sin\phi - \sin\psi \cos\phi & \cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
-        \sin\psi \cos\theta & \sin\psi \sin\theta \sin\phi + \cos\psi \cos\phi & \sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
-        -\sin\theta & \cos\theta \sin\phi & \cos\theta \cos\phi
-        \end{bmatrix}
-    \\
-    \dot{\mathbf{v}} &= 
-        \begin{bmatrix}
-    0.0 \\
-    0.0 \\
-    -\text{g}
-        \end{bmatrix}
-    +
-    \mathbf{R}_{\text{RPY}} \cdot
-    \begin{bmatrix}
-        0.0 \\
-        0.0 \\
-        \frac{T}{m}
-    \end{bmatrix}
-\end{align}
-In our implementation, we have used a simplified dynamic model for the quadrotor instead of the simplified second order system.
-\begin{align}
-    \begin{cases}
-        \ddot{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
-        \ddot{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
-        \ddot{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
-        \ddot{\phi} = \frac{\tau_{\phi}}{I_{x}}\\
-        \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}}\\
-        \ddot{\psi} = \frac{\tau_{\psi}}{I_{z}}\\ 
-    \end{cases}  
-\end{align}
+We have used the PiNN to predict the next state $q_{k+1}$ of the robot given the current state, the control input given by the MPC and the time instant. Over a small time instant we have chosen to use Euler integration to do the approximation of the next state: $q_{k+1} = q_{k} + \Delta t \cdot f(q_{k}, u_{k})$, where the dynamic function is defined as follows.
 
-\begin{align}
+\begin{equation}
+    f(q_{k}, u_{k}) = 
     \begin{cases}
-        \dot{x} = v_{x}\\
-        \dot{y} = v_{y}\\
-        \dot{z} = v_{z}\\
-        \dot{v}_{x} = (\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
-        \dot{v}_{y} = (\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
-        \dot{v}_{z} = (\cos\theta \cos\phi) \frac{T}{m} -g\\
-        \dot{\phi} = \\
-        \dot{\theta} = \\
-        \dot{\psi} = \\ 
-    \end{cases}  
-\end{align}
-In our implementation, we have used a PiNNs to predict the next state of the system, given the control input obtained from the Model Predictive Control.
-\todo[inline]{losses}
-\todo[inline]{pipeline}
-\todo[inline]{image pinn}
+        {x_{k+1}} = v_{k} \cos(\theta_{k}) \\
+        {y_{k+1}} = v_{k} \sin(\theta_{k}) \\
+        {\theta_{k+1}} = w_{k} \\
+    \end{cases}
+\end{equation}
+
+\todo[inline]{definition of losses}
+\todo[inline]{image of pinn time}
+\todo[inline]{pipeline (prendi foto paper manipulator)}

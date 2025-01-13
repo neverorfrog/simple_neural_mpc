@@ -12,3 +12,51 @@ Model Predictive Control (MPC), it is a control technique used to solve an optim
 \end{align}
 
 One of the main advantages of this control approach is the ability to handle multivariable interactions and constraints. However, solving the above optimization problem in real time can be computationally challenging, especially for large-scale or highly nonlinear systems. This is one reason why neural networks have been employed to either approximate the system model or enhance the optimization process. In our case, we have used Neural Networks to predict the next state after the application of the control input given by the MPC.
+\todo[inline]{application of mpc to unicycle and quadrotor}
+\begin{align}
+    \mathbf{R}_{\text{RPY}} &=
+        \begin{bmatrix}
+        \cos\psi \cos\theta & \cos\psi \sin\theta \sin\phi - \sin\psi \cos\phi & \cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
+        \sin\psi \cos\theta & \sin\psi \sin\theta \sin\phi + \cos\psi \cos\phi & \sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
+        -\sin\theta & \cos\theta \sin\phi & \cos\theta \cos\phi
+        \end{bmatrix}
+    \\
+    \dot{\mathbf{v}} &= 
+        \begin{bmatrix}
+    0.0 \\
+    0.0 \\
+    -\text{g}
+        \end{bmatrix}
+    +
+    \mathbf{R}_{\text{RPY}} \cdot
+    \begin{bmatrix}
+        0.0 \\
+        0.0 \\
+        \frac{T}{m}
+    \end{bmatrix}
+\end{align}
+In our implementation, we have used a simplified dynamic model for the quadrotor instead of the simplified second order system.
+\begin{align}
+    \begin{cases}
+        \ddot{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+        \ddot{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+        \ddot{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
+        \ddot{\phi} = \frac{\tau_{\phi}}{I_{x}}\\
+        \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}}\\
+        \ddot{\psi} = \frac{\tau_{\psi}}{I_{z}}\\ 
+    \end{cases}  
+\end{align}
+
+\begin{align}
+    \begin{cases}
+        \dot{x} = v_{x}\\
+        \dot{y} = v_{y}\\
+        \dot{z} = v_{z}\\
+        \dot{v}_{x} = (\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+        \dot{v}_{y} = (\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+        \dot{v}_{z} = (\cos\theta \cos\phi) \frac{T}{m} -g\\
+        \dot{\phi} = \\
+        \dot{\theta} = \\
+        \dot{\psi} = \\ 
+    \end{cases}  
+\end{align}
