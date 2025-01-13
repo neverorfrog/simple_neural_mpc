@@ -14,8 +14,28 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-\section{Models}
+\begin{frame}{Neural Model Predictive Control (NMPC)}
+    In this work we have tried to combine Model Predictive Control along with PiNNs to trajectory tracking problem applied to quadrotors. We have used the Unicycle robot as simple test case for our experiments.
+\end{frame}
+\section{Robot Models}
+
+\begin{frame}{Quadorotor}
+    Since we have used the Craziflie robot as reference, instead of using the classic second order simplied model we have used a first order one.
+
+    \begin{align}
+        \begin{cases}
+            \ddot{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+            \ddot{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+            \ddot{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
+            \ddot{\phi} = \frac{\tau_{\phi}}{I_{x}}\\
+            \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}}\\
+            \ddot{\psi} = \frac{\tau_{\psi}}{I_{z}}\\ 
+        \end{cases}  
+    \end{align}
+\end{frame}
+
 \begin{frame}{Unicycle}
+    Instead of using the dynamic model of the robot, we have modeled it with its kinematic model, which will be the one approximated by the network.
     \begin{align}
         \begin{cases}
             \dot{x} = v \cos(\theta) \\
@@ -25,15 +45,32 @@
     \end{align}
 \end{frame}
 
-\begin{frame}{Quadorotor}
-    
-\end{frame}
 \section{Model Predictive Control}
+\begin{frame}{Model Predictive Control}
+    Our objective is to minimize at each step the error with respect to the reference
+    trajectory, while also maintaining the module of the input actions as low as possible
+    \begin{align}
+        \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
+        \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
+        & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
+        & x(0) = x_{\text{0}}
+    \end{align}
+    This approach leads to good result for both the drone and unicycle models.
+\end{frame}
+
+\section{Neural Network}
+\begin{frame}{Simple MLP}
+    We have started by using a simple Neural Network to approximate the kinematic model of the Unicycle. The architecture is characterized by two hidden layers of 128 neurons and takes as input the current state and the action that I want to apply.
+    \begin{equation}
+        loss = \frac{1}{k}\sum_{i=t}^{t+k} (\bar{s}_i - s_i)^2
+    \end{equation}
+    The loss is computed as the MSE between the neural and the nominal evolutions of the state.
+\end{frame}
+
 \section{Physical Informed Neural Networks}
 \begin{frame}{PiNNs}
     Physical Informed Neural
-Networks (PiNNs) propose an alternative approach where the solution is approxi-
-mated by a neural network that is trained not only on data but also by enforcing
+Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing
 the underlying physical laws via the differential equations.
 
 \begin{align}
@@ -42,7 +79,26 @@ the underlying physical laws via the differential equations.
 \end{align}
 
 \end{frame}
-\section{Results}
+\section{Results and Problems Encountered}
+\begin{frame}{Dataset Generation}
+\end{frame}
+\begin{frame}{Integration technique used}
+\end{frame}
+\begin{frame}{Why we have chosen to use PiNNs with Control instead of classic PiNNs}
+\end{frame}
+
+\begin{frame}{Drift Problem}
+    After some training, we have tested our neural model along with the MPC with nice results (check video).
+    However, we found out that by having zero control inputs the networks still moves the state somewhere else.
+    We have tried to overcome this problem in some ways but with poor results:
+    \begin{itemize}
+        \item Sample N sample points at the boundary during each epoch
+        \item Add a penalty term related to the boundary condition
+    \end{itemize}
+\end{frame}
+\begin{frame}{Possible Local Minima}
+    During each training expertiment, we have found out that all losses behave correctly but they remain stuck at some points even with few iterations. Also in this case we have tried extensively hyperparameter tuning without any solution to the problem.
+\end{frame}
 \section{Conclusions}
 % \backmatter add this later
 \end{document}

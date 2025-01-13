@@ -12,14 +12,6 @@ Usually $\mathcal{L}_{data}$ is define as the mean squared error between the pre
 \end{align}
 
 As previously stated, we have used a bottom-up approach by first testing this approach to a Unicycle. This robot is characterized by simple kinematic equations. Its configuration vector is composed by the cartesian position $(x,y)$ and its orientation angle $\theta$, while the control inputs are the driving velocity $v$ and the steering velocity $w$.
-\begin{align}
-    \begin{cases}
-        \dot{x} = v \cos(\theta) \\
-        \dot{y} = v \sin(\theta) \\
-        \dot{\theta} = w \\
-    \end{cases}
-\end{align}
-
 We have used the PiNN to predict the next state $q_{k+1}$ of the robot given the current state, the control input given by the MPC and the time instant. Over a small time instant we have chosen to use Euler integration to do the approximation of the next state: $q_{k+1} = q_{k} + \Delta t \cdot f(q_{k}, u_{k})$, where the dynamic function is defined as follows.
 
 \begin{equation}

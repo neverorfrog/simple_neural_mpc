@@ -2,14 +2,68 @@
 \todo[inline]{uav complete model}
 \todo[inline]{mpc structure}
 
-Model Predictive Control (MPC), it is a control technique used to solve an optimization problem at each sampling instant. The controller predicts the future behavior of the system using a mathematical model and determines a sequence of control inputs that minimize a predefined cost function while satisfying state and input constraints.
-
+Model Predictive Control (MPC), it is an optimal control technique where the actions are chosen solving an optimization problem, composed by a set of constraints and an
+objective function to be minimized over a finite horizon.
 \begin{align}
     \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
     \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
     & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
     & x(0) = x_{\text{0}}
 \end{align}
+\subsection{Cost function}
+Our objective is to minimize at each step the error with respect to the reference 
+trajectory, both in traslational and orientational dimension, while also maintaining the
+module of the input actions as low as possible. A terminal state term is present too,
+where the traslational and orientational errors of the last horizon step are tried to 
+be minimized. Thus, the cost function is composed by the following three terms:
+\begin{enumerate}
+    \item \textbf{Spatial error}: at each step of the horizon, errors along x-axis, y-axis and error of orientation 
+                                  are summed together
+                                  \begin{equation}
+                                      J_{sp} = W_{e_x} e_x + W_{e_y} e_y + W_{e_{\theta}} e_{\theta}
+                                  \end{equation}
+                                  where 
+                                  \begin{subequations}
+                                    \begin{eqnarray}
+                                        e_x &=& x - x_{ref} \\
+                                        e_y &=& y - y_{ref} \\
+                                        e_\theta &=& \theta - \theta_{ref}
+                                    \end{eqnarray}
+                                  \end{subequations}
+
+    \item \textbf{Terminal state}: to make sure the final stage is a good one, we add a penalty on errors along x-axis, y-axis and error of orientation
+                                   in the terminal state
+                                   \begin{equation}
+                                        J_{term} = W_{e_{x_{term}}} e_{x_{term}} + W_{e_{y_{term}}} e_{y_{term}} + W_{e_{{\theta}_{term}}} e_{{\theta}_{term}}
+                                   \end{equation}
+
+    \item \textbf{Input}: it penalizes high values of input controls 
+                                   \begin{equation}
+                                        J_{u} = W_{v} v + W_{\omega}  \omega
+                                   \end{equation}
+                               
+
+\end{enumerate}
+
+\subsection{Constraints}
+The constraints of the NLP concerns some limitations on the state of the vehicle model 
+and on the dynamics of the system. 
+In detail, we have just two constraints:
+\begin{enumerate}
+    \item \textbf{Initial state}: the initial state of the unicycle model must be the current measured state. 
+                                  Therefore, defining the vehicle state as $x$:
+                                  \begin{equation}
+                                    x_0 = x_{measured}
+                                  \end{equation}
+    \item \textbf{Dynamics}: given the unicycle state at a certain time-step as $x_t$, an input at the same time-step as $u_t$
+                             and the dynamic model of the system defined as $\text{f}_\text{expl}$, 
+                             we establish that the next state is obtained by applying the input at the given state according to
+                             dynamic model:
+                             \begin{equation}
+                                x_{t+1} = \text{f}_\text{expl}(x_t, u_t)
+                             \end{equation} 
+\end{enumerate}
+
 
 One of the main advantages of this control approach is the ability to handle multivariable interactions and constraints. However, solving the above optimization problem in real time can be computationally challenging, especially for large-scale or highly nonlinear systems. This is one reason why neural networks have been employed to either approximate the system model or enhance the optimization process. In our case, we have used Neural Networks to predict the next state after the application of the control input given by the MPC.
 \todo[inline]{application of mpc to unicycle and quadrotor}
