@@ -1,11 +1,14 @@
 The model must be well-defined to be used in NMPC, in such a way 
 to obtain reliable predictions of system behavior in response to various control actions.
+The usage of a data-driven approach, such as neural networks, in the vehicle modeling phase has the
+advantage of not modeling all the nonlinear physical effects, which can be also very complex.
+In fact, neural networks have the capability to accurately model them. 
 Neural networks are universal approximators, and they can be used both for designing 
 the entire dynamic model of a system and approximating the disturbances and noises 
 a system can be affected.
 Our purpose is to approximate the entire kinematic model of an unicycle with a neural model,
 due to its low complexity. 
-In this section we will start describinf briefly the kinematic model of a unicycle, and then 
+In this section we will start describing briefly the kinematic model of a unicycle, and then 
 we will describe the neural architecture used to approximate it.
 
 \subsection{Unicycle kinematic model}
@@ -27,3 +30,14 @@ So, the motion of the unicycle can be described through the following equations:
     \dot{\theta}(t) &=& \omega(t) \\
 \end{eqnarray}
 
+\subsection{Unicycle Neural model}
+The neural network used to model the kinematic model of the unicycle is a simple MLP architecture,
+with two hidden layers of 128 neurons. The network has two input which are concatenated together,
+the current state of the unicycle (dimension 3) and the current applied actions on the vehicle (dimension 2),
+so it must be of dimension 5 and is represented by 
+\begin{equation}
+    X = [x, y, \theta, v, \omega]
+\end{equation}
+
+The output of the network has dimension 3, and it represents the dynamic of the system, therefore it reproduces 
+the differential equations which describe the motion of the unicycle.
