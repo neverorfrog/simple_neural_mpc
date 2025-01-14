@@ -20,7 +20,7 @@
 \section{Robot Models}
 
 \begin{frame}{Quadorotor}
-    Since we have used the Craziflie robot as reference, instead of using the classic second order simplied model we have used a first order one.
+    Since we have used the Crazyflie robot as reference, instead of using the classic second order simplied model we have used a first order one.
 
     \begin{align}
         \begin{cases}
@@ -34,21 +34,10 @@
     \end{align}
 \end{frame}
 
-\begin{frame}{Unicycle}
-    Instead of using the dynamic model of the robot, we have modeled it with its kinematic model, which will be the one approximated by the network.
-    \begin{align}
-        \begin{cases}
-            \dot{x} = v \cos(\theta) \\
-            \dot{y} = v \sin(\theta) \\
-            \dot{\theta} = w \\
-        \end{cases}
-    \end{align}
-\end{frame}
-
 \section{Model Predictive Control}
 \begin{frame}{Model Predictive Control}
     Our objective is to minimize at each step the error with respect to the reference
-    trajectory, while also maintaining the module of the input actions as low as possible
+    trajectory, while also maintaining the module of the input actions as low as possible.
     \begin{align}
         \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
         \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
@@ -60,27 +49,88 @@
 
 \section{Neural Network}
 \begin{frame}{Simple MLP}
-    We have started by using a simple Neural Network to approximate the kinematic model of the Unicycle. The architecture is characterized by two hidden layers of 128 neurons and takes as input the current state and the action that I want to apply.
-    \begin{equation}
-        loss = \frac{1}{k}\sum_{i=t}^{t+k} (\bar{s}_i - s_i)^2
-    \end{equation}
-    The loss is computed as the MSE between the neural and the nominal evolutions of the state.
+    \begin{columns}[T] % align columns at the top
+        \begin{column}{0.50\textwidth}
+            The architecture is characterized by two hidden layers of 128 neurons and takes as input the current state and the action that I want to apply.
+            \vspace{1ex}
+            \begin{align}
+                \dot{x} &= f_{\theta}(x,u) \\
+                loss &= \frac{1}{k}\sum_{i=t}^{t+k} (\bar{s}_i - s_i)^2
+            \end{align}
+            The loss is computed as the MSE between the neural and the nominal evolutions of the state.
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \centering
+            % First image on top
+            \includegraphics[width=\textwidth]{../report/assets/mlp_1.jpg} % replace with 
+            \includegraphics[width=\textwidth]{../report/assets/mlp_2.jpg} % replace with your second image file
+            \footnotesize{Evolution Trajectory}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \section{Physical Informed Neural Networks}
 \begin{frame}{PiNNs}
-    Physical Informed Neural
-Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing
-the underlying physical laws via the differential equations.
+    \begin{columns}[T]
+        % Right Column: Text and Equations
+        \begin{column}{0.55\textwidth}
+            Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
+            \vspace{1em}
+            \begin{align}
+                \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2, \\
+                \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
+            \end{align}
+        \end{column}
 
-\begin{align}
-    \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2 \\
-    \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
-\end{align}
+        \begin{column}{0.4\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/oscillator.jpg} % Replace with your image file
+            \vspace{1ex}
+            \footnotesize{PiNN vs Classical MLP}
+            \\
+            \textbf{Problems and Limitations}:
+            \begin{itemize}
+                \item Cannot handle control input 
+                \item Fixed initial condition
+            \end{itemize}
+        \end{column}
+        
+    \end{columns}
+\end{frame}
+\begin{frame}{PiNN with Controls}
+    \begin{columns}[T]
+        % Right Column: Text and Equations
+        \begin{column}{0.55\textwidth}
+            The Pinn-C modifies the formulation of the pinn, by dividing the evolution into sub-transitions with constant input. The network takes as input $(x(0), \bar{u}, t)$. \\
+            \vspace{1ex}
+            \textbf{Pros}:
+            \begin{itemize}
+                \item it can handle larger time-steps with respect to the original formulation
+                \item can accept arbitrary starting conditions
+            \end{itemize}
+            \textbf{Cons}:
+            \begin{itemize}
+                \item relies heavily on the dataset 
+            \end{itemize}
+        \end{column}
 
+        \begin{column}{0.4\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinc_time.png} % Replace with your image file
+            \vspace{1ex}
+            \includegraphics[width=0.9\textwidth]{../report/assets/pinnc_traj.jpg} % Replace
+            \footnotesize{Trajectory with PiNN-C}
+        \end{column}
+        
+    \end{columns}
 \end{frame}
 \section{Results and Problems Encountered}
 \begin{frame}{Dataset Generation}
+We have tried different strategies:
+\begin{itemize}
+    \item random velocity commands over the horizon
+    \item random velocity commands constant over the horizon
+\end{itemize}
 \end{frame}
 \begin{frame}{Integration technique used}
 \end{frame}
@@ -97,7 +147,19 @@ the underlying physical laws via the differential equations.
     \end{itemize}
 \end{frame}
 \begin{frame}{Possible Local Minima}
-    During each training expertiment, we have found out that all losses behave correctly but they remain stuck at some points even with few iterations. Also in this case we have tried extensively hyperparameter tuning without any solution to the problem.
+    \begin{columns}[T] % Align columns at the top
+        % Left Column: Text
+        \begin{column}{0.55\textwidth}
+            \vspace{1ex}
+            During each training experiment, we have found that all losses behave correctly but they remain stuck at some points even with few iterations. Also in this case we have tried extensively hyperparameter tuning without any solution to the problem.
+        \end{column}
+        % Right Column: Image
+        \begin{column}{0.40\textwidth}
+            \centering
+            \includegraphics[width=\textwidth,keepaspectratio]{../report/assets/loss.jpg}
+            \footnotesize{Loss Behavior}
+        \end{column}
+    \end{columns}
 \end{frame}
 \section{Conclusions}
 % \backmatter add this later
