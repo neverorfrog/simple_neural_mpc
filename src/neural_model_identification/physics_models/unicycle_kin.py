@@ -1,7 +1,7 @@
 import numpy as np
 
-from neural_model_identification.parameters.train_params import TrainParams
-
+#from neural_model_identification.parameters.train_params import TrainParams
+from neural_model_identification.parameters.train_params_pinn import TrainParamsPinn as TrainParams
 """
 
 In this file we implement kinematic unicycle to generate trajectories for training phase

@@ -1,10 +1,15 @@
+import sys
+sys.path.append('.')
+
 import os
 import shutil
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from neural_model_identification.parameters.train_params import TrainParams
+
+#from neural_model_identification.parameters.train_params import TrainParams
+from neural_model_identification.parameters.train_params_pinn import TrainParamsPinn as TrainParams
 from neural_model_identification.physics_models.unicycle_kin import Unicycle
 
 if __name__ == "__main__":
@@ -12,6 +17,7 @@ if __name__ == "__main__":
     n_step = TrainParams.n_step
     plot_traj = TrainParams.plot_traj
     destination_path = TrainParams.data_path
+
 
     try:
         shutil.rmtree(destination_path)
