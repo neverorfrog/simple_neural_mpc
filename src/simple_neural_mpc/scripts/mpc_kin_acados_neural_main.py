@@ -25,17 +25,15 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 # Define the dynamic system using the trained model and l4casADi
 root = project_root()
 
-# torch_model = MLP_Pinn(
-#     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, use_pinn=True
-# )
+torch_model = MLP_Pinn(TrainParams.state_dim, TrainParams.input_dim, 124)
 
-torch_model = MLP(
-    TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
-)
+# torch_model = MLP(
+#     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
+# )
 
 torch_model.load_state_dict(
     torch.load(
-        f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth",
+        f"{root}/src/neural_model_identification/model_epochs_60_218_extra_small_input.pth",
         weights_only=True,
         map_location=torch.device("cpu"),
     ),

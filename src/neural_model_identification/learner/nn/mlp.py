@@ -85,22 +85,18 @@ class MLP_Pinn(nn.Module):
         dyn sys identification
     """
 
-    def __init__(self, state_dim, input_dim, latent_dim, use_pinn=False) -> None:
+    def __init__(self, state_dim, input_dim, latent_dim) -> None:
         super(MLP_Pinn, self).__init__()
 
-        self.input_shape = (
-            state_dim + input_dim + 1 if use_pinn else state_dim + input_dim
-        )
+        self.input_shape = state_dim + input_dim + 1 
         self.state_dim = state_dim
         
         self.fc = nn.Sequential(
-            nn.Linear(self.input_shape, 32),
+            nn.Linear(self.input_shape, latent_dim),
             nn.Tanh(),
-            nn.Linear(32, latent_dim),
+            nn.Linear(latent_dim, latent_dim),
             nn.Tanh(),
-            nn.Linear(latent_dim, 32),
-            nn.Tanh(),
-            nn.Linear(32, state_dim),
+            nn.Linear(latent_dim, state_dim),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

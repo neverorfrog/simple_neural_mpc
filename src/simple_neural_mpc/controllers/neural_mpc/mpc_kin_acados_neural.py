@@ -76,7 +76,7 @@ class ModelPredictiveController(Controller):
             self.ocp.cost.cost_type = "LINEAR_LS"
             self.ocp.cost.cost_type_e = "LINEAR_LS"
             self.ocp.cost.W = np.diag(
-                np.array([15, 15, 0.01, 1, 1])
+                np.array([1, 1, 1, 1, 1])
             )  # weight matrix for stage cost
             self.ocp.cost.W_e = np.diag(
                 np.array([5, 5, 0.01])
@@ -93,7 +93,7 @@ class ModelPredictiveController(Controller):
             # Solver Options
             self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
             self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            self.ocp.solver_options.integrator_type = "ERK"
+            self.ocp.solver_options.integrator_type = "DISCRETE"
             self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
             self.ocp.solver_options.tol = 1e-3
             self.ocp.solver_options.qp_tol = 1e-3

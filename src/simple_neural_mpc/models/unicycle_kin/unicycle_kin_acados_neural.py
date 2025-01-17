@@ -40,12 +40,11 @@ class Unicycle(Robot):
             ca.MX.sym("psi_dot"),
         )
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
-
         
         # l4casadi model
         self.l4casadi_model = l4c.L4CasADi(neural_network, name=model_name)
         neural_dyn = self.l4casadi_model(
-            ca.vertcat(state, control)
+            ca.vertcat(state, control, t)
         )  # neural network approximated dynamics (MX)
         f_disc = neural_dyn
         # f_disc = ca.vertcat(x,y,psi) + t * ca.vertcat(x_dot, y_dot, psi_dot)
