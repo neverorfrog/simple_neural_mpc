@@ -19,6 +19,36 @@ class Trajectory(ABC):
                 pdd_d,   acceleration, m/s**2
         """
         pass
+    
+    
+class Zero(Trajectory):
+    def __init__(self):
+        """
+        Constructor for the zero trajectory.
+        """
+        pass
+
+    def update(self, t):
+        return {"p": np.full((2, len(t)), 0), "pd": np.full((2, len(t)), 0), "pdd": np.full((2, len(t)), 0), "psi": np.full((len(t)), 0), "psid": np.full((len(t)), 0)}
+    
+    
+class Dritto(Trajectory):
+    def __init__(self):
+        """
+        Constructor for the dritto trajectory.
+        """
+        pass
+
+    def update(self, t):
+        
+        p =  np.full((2, len(t)), t * 0.1)
+        pd = np.full((2, len(t)), t * 0.01)
+        pdd = np.full((2, len(t)), t * 0.001)
+        p[1, :] *= 0
+        pd[1, :] *= 0
+        pdd[1, :] *= 0
+        
+        return {"p": p, "pd": pd, "pdd": pdd, "psi": np.full((len(t)), 0), "psid": np.full((len(t)), 0)}
 
 
 class Circle(Trajectory):

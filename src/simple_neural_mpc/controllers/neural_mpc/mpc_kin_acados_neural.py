@@ -9,6 +9,7 @@ from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.models.unicycle_kin.unicycle_kin_acados_neural import (
     Unicycle,
     UnicycleAction,
+    UnicycleState,
 )
 from simple_neural_mpc.utils.configuration import (
     KinModelPredictiveControllerConfig,
@@ -32,6 +33,7 @@ class ModelPredictiveController(Controller):
         self.to_generate = to_generate
         self.k = 0  # current iteration
         self._init_ocp()
+        self.ode = lambda x, u: np.array([u[0] * np.cos(x[2]), u[1] * np.sin(x[2]), u[1]])
 
     def _init_ocp(self):
         if not self.to_generate:
@@ -76,10 +78,10 @@ class ModelPredictiveController(Controller):
             self.ocp.cost.cost_type = "LINEAR_LS"
             self.ocp.cost.cost_type_e = "LINEAR_LS"
             self.ocp.cost.W = np.diag(
-                np.array([1, 1, 1, 1, 1])
+                np.array([10, 10, 0.1, 1, 1])
             )  # weight matrix for stage cost
             self.ocp.cost.W_e = np.diag(
-                np.array([5, 5, 0.01])
+                np.array([15, 15, 1])
             )  # weight matrix for terminal cost
 
             # Constraints
@@ -127,7 +129,7 @@ class ModelPredictiveController(Controller):
             self.solver: AcadosOcpSolver = acados_ocp_solver_pyx.AcadosOcpSolverCython(
                 self.robot.model.name, self.ocp.solver_options.nlp_solver_type, self.N
             )
-
+            
     def command(self, robot: Unicycle, reference: Trajectory):
         # generate trajectory for next N steps
         t = np.linspace(
@@ -155,13 +157,19 @@ class ModelPredictiveController(Controller):
         print(action)
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
-
+        
+        cur_state = robot.state.values
+        # cur_action = np.array([action.v, action.w])
+        next_state = cur_state + 0.1 * np.array([action.v * np.cos(cur_state[2]), action.v * np.sin(cur_state[2]), action.w])
+        # next_state = self.robot.integrate(cur_state, cur_action, self.ode, self.config.dt)
+        # print(next_state)
+        
         next_state = self.solver.get(1, "x")
+        
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state
 
-        print(next_state)
         print("Error: ", error)
         print("")
 

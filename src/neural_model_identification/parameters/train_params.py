@@ -9,7 +9,7 @@ class TrainParams:
     # data generations parameters
     # ---------------------------
     n_step = 1000  # aka number of action
-    n_traj = 300  # number of trajectories
+    n_traj = 1000  # number of trajectories
     plot_traj = False
     
     is_pinn: bool = False
@@ -25,12 +25,12 @@ class TrainParams:
     state_dim: int = 3  # dimension of the state x
     input_dim: int = 2  # dimension of the input u
 
-    latent_dim: int = 128  # dimension of the latent space
+    latent_dim: int = 64  # dimension of the latent space
 
     # batch_size must be such that the following expression returns an integer number (not a float)
     # otherwise the last batch for the training has different dimensions and it does not work.
     # Expression:           ((n_steps - horizon) * n_traj) / batch_size
-    horizon: int = 50  # prediction horizion for multi-step roll-out
+    horizon: int = 20  # prediction horizion for multi-step roll-out
     batch_size: int = 60  # you know this
 
     normalize_data: bool = False

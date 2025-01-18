@@ -25,7 +25,7 @@ class Learner(AbstractLearner):
         self.model = MLP(
             state_dim=TrainParams.state_dim,
             input_dim=TrainParams.input_dim,
-            latent_dim=TrainParams.latent_dim,
+            latent_dim=TrainParams.latent_dim
         ).to(self.device)
 
         if use_pretrain:
@@ -37,7 +37,7 @@ class Learner(AbstractLearner):
             weight_decay=TrainParams.weight_decay,
         )
 
-        self.mse = torch.nn.MSELoss(reduction="sum")
+        self.mse = torch.nn.MSELoss()
 
     def propagate(self, input_tensor: torch.Tensor) -> torch.Tensor:
         """
@@ -61,21 +61,23 @@ class Learner(AbstractLearner):
         actions = x[
             :, :, self.state_dim : self.state_dim + self.input_dim
         ]  # [batch, horizon, input_dim]
+        derivatives = x[:, :, -self.state_dim :]  # [batch, horizon, state_dim]
 
         next_pair = [
-            torch.hstack((states[:, 0, :], actions[:, 0, :]))
+            torch.hstack((states[:, 0, :], actions[:, 0, :], derivatives[:, 0, :]))
         ]  # [batch, state_dim + input_dim]
         next_states = [states[:, 0, :].unsqueeze(-1)]  # [batch, state_dim , 1]
 
         for k in range(self.horizon - 1):
             x_t_next = self.propagate(next_pair[-1])  # [batch, state_dim]
             next_states.append(x_t_next.unsqueeze(-1))
-            next_pair.append(torch.hstack((x_t_next, actions[:, k + 1, :])))
+            next_pair.append(torch.hstack((x_t_next, actions[:, k + 1, :], derivatives[:, k + 1, :])))
 
         generated_traj = torch.concatenate(
             next_states, dim=-1
         )  # [batch, state_dim, horizon]
         generated_traj = generated_traj.permute(0, 2, 1)  # [batch, horizon, state_dim]
+        
 
         loss = self.mse(states, generated_traj)
 

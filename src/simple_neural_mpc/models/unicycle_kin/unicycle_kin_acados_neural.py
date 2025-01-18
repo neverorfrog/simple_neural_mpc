@@ -9,7 +9,6 @@ from simple_neural_mpc.models.robot import Robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 from simple_neural_mpc.utils.plotting import plot_wheeled_robot
 
-
 class Unicycle(Robot):
 
     @classmethod
@@ -47,7 +46,6 @@ class Unicycle(Robot):
             ca.vertcat(state, control, t)
         )  # neural network approximated dynamics (MX)
         f_disc = neural_dyn
-        # f_disc = ca.vertcat(x,y,psi) + t * ca.vertcat(x_dot, y_dot, psi_dot)
         
         # Explicit ODE
         x_dot = v * ca.cos(psi)
@@ -78,7 +76,7 @@ class Unicycle(Robot):
     @property
     def transition(self):
         pass
-
+    
     def plot(self, axis: Axes, state):
         x, y, psi = state
         plot_wheeled_robot(axis, x, y, psi)

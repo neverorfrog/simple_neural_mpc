@@ -36,4 +36,4 @@ if __name__ == "__main__":
     simulation = TrajectoryTrackingSimulation(
         "mpc_kin_acados", robot, controller, reference
     )
-    simulation.run(N=500, animate=True, save=False)
+    simulation.run(N=1, animate=False, save=False)

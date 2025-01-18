@@ -18,7 +18,7 @@ from simple_neural_mpc.utils.configuration.mpc_kin_config import (
 )
 from simple_neural_mpc.utils.configuration.unicycle_config import UnicycleConfig
 from simple_neural_mpc.utils.misc import load_config, project_root
-from simple_neural_mpc.utils.trajectory import Circle
+from simple_neural_mpc.utils.trajectory import Circle, Ellipse, Eight, Zero, Dritto
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
@@ -26,24 +26,31 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 root = project_root()
 
 torch_model = MLP_Pinn(TrainParams.state_dim, TrainParams.input_dim, 124)
-
-# torch_model = MLP(
-#     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
-# )
-
 torch_model.load_state_dict(
     torch.load(
-        f"{root}/src/neural_model_identification/model_epochs_60_218_extra_small_input.pth",
+        f"{root}/src/neural_model_identification/model_epochs_80_345_extra_small_input_maybe_to_many_ep.pth",
         weights_only=True,
         map_location=torch.device("cpu"),
     ),
     strict=False,
 )
-torch_model.eval()
+
+# torch_model = MLP(
+#     TrainParams.state_dim, TrainParams.input_dim, TrainParams.latent_dim, is_in_mpc=True
+# )
+# torch_model.load_state_dict(
+#     torch.load(
+#         f"{root}/src/neural_model_identification/trained_models/kin_unicycle/model.pth",
+#         weights_only=True,
+#         map_location=torch.device("cpu"),
+#     ),
+#     strict=False,
+# )
+# torch_model.eval()
 
 if __name__ == "__main__":
-    reference = Circle(freq=0.1)
-
+    reference = Circle(freq=0.3)
+    
     # Bicycle model and corresponding controller
     robot_config = load_config(
         f"{root}/config/models/unicycle.yaml",
@@ -60,4 +67,4 @@ if __name__ == "__main__":
 
     # Simulation
     simulation = TrajectoryTrackingSimulation("neural_mpc", robot, controller, reference)
-    simulation.run(N=200, animate=True, save=False)
+    simulation.run(N=500, animate=True, save=True)
