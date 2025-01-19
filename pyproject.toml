@@ -1,0 +1,31 @@
+[project]
+name = "simple_neural_mpc"
+version = "0.1.0"
+description = "Add a short description here"
+authors = []
+requires-python = "== 3.11"
+dependencies = ["pytest>=8.3.4,<9", "ipykernel>=6.29.5,<7", "pyqt5>=5.15.11,<6", "casadi>=3.6.7,<4", "torch>=2.5.1,<3"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.pypi-options]
+no-build-isolation = ["l4casadi"]
+
+[tool.pixi.pypi-dependencies]
+simple_neural_mpc = { path = ".", editable = true }
+matplotlib = ">=3.9.2,<4"
+omegaconf = ">=2.3.0,<3"
+pyyaml = ">=6.0.2,<7"
+scipy = ">=1.14.1,<2"
+numpy = ">=2.2.1,<3"
+l4casadi = { path = "external/l4casadi", editable = true}
+acados_template = {path = "external/acados/interfaces/acados_template", editable = true}
+
+
+[tool.pixi.tasks]

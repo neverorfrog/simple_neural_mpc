@@ -57,7 +57,8 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "python.analysis.extraPaths": [
-    "./external/acados/interfaces/acados_template"
+    "./external/acados/interfaces/acados_template",
+    "./external/l4casadi"
   ],
   "python.defaultInterpreterPath": "/home/neverorfrog/code/simple_neural_mpc/.pixi/envs/default/bin/python"
 }
