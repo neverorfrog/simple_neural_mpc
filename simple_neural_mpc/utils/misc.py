@@ -1,7 +1,6 @@
 import os
 from typing import Type, TypeVar
 
-import numpy as np
 import yaml
 from omegaconf import OmegaConf
 

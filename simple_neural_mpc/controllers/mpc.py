@@ -5,29 +5,23 @@ from pathlib import Path
 import numpy as np
 from acados_template import AcadosOcp, AcadosOcpSolver
 
-from simple_neural_mpc.config.mpc_config import MPCConfig
+from simple_neural_mpc.config.mpc_config import MPCConfig as config
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.robots.unicycle import (
-    Unicycle,
-    UnicycleAction,
-    UnicycleState,
-)
+from simple_neural_mpc.robots.unicycle import Unicycle, UnicycleAction
 from simple_neural_mpc.simulation.trajectory import Trajectory
 
 np.random.seed(31)
 
 
-class ModelPredictiveController(Controller):
+class MPC(Controller):
     def __init__(
         self,
         robot: Unicycle,
-        config: MPCConfig,
         to_generate: bool = False,
     ):
         """Optimizer Initialization"""
-        self.config = config
         self.robot = robot
-        self.N = self.config.horizon
+        self.N = config.horizon
         self.acados_gen_path = Path("acados_generated_files")
         self.to_generate = to_generate
         self.k = 0  # current iteration
@@ -94,7 +88,7 @@ class ModelPredictiveController(Controller):
             # Solver Options
             self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
             self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            self.ocp.solver_options.integrator_type = "DISCRETE"
+            self.ocp.solver_options.integrator_type = "ERK"
             self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
             self.ocp.solver_options.tol = 1e-3
             self.ocp.solver_options.qp_tol = 1e-3
@@ -103,16 +97,17 @@ class ModelPredictiveController(Controller):
             self.ocp.solver_options.print_level = 0
 
             # Prediction Horizon
-            self.ocp.solver_options.tf = self.config.horizon * self.config.dt
-            self.ocp.solver_options.N_horizon = self.config.horizon
+            self.ocp.solver_options.tf = config.horizon * config.dt
+            self.ocp.solver_options.N_horizon = config.horizon
 
             # L4Casadi Stuff
-            self.ocp.solver_options.model_external_shared_lib_dir = (
-                self.robot.l4casadi_model.shared_lib_dir
-            )
-            self.ocp.solver_options.model_external_shared_lib_name = (
-                self.robot.l4casadi_model.name
-            )
+            if config.neural is True and self.robot.neural_network is not None:
+                self.ocp.solver_options.model_external_shared_lib_dir = (
+                    self.robot.l4casadi_model.shared_lib_dir
+                )
+                self.ocp.solver_options.model_external_shared_lib_name = (
+                    self.robot.l4casadi_model.name
+                )
 
             # Debug Stuff
             self.ocp.solver_options.print_level = 0
@@ -132,8 +127,8 @@ class ModelPredictiveController(Controller):
     def command(self, robot: Unicycle, reference: Trajectory, t: float):
         # generate trajectory for next N steps
         t = np.linspace(
-            self.k * self.config.dt,
-            (self.k + self.N) * self.config.dt,
+            self.k * config.dt,
+            (self.k + self.N) * config.dt,
             self.N + 1,
         )
         ref = reference.update(t)
@@ -153,7 +148,6 @@ class ModelPredictiveController(Controller):
 
         # Solve the optimization problem
         action = self.solver.solve_for_x0(robot.state.values)
-        print(action)
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
 
@@ -162,7 +156,7 @@ class ModelPredictiveController(Controller):
         next_state = cur_state + 0.1 * np.array(
             [action.v * np.cos(cur_state[2]), action.v * np.sin(cur_state[2]), action.w]
         )
-        # next_state = self.robot.integrate(cur_state, cur_action, self.ode, self.config.dt)
+        # next_state = self.robot.integrate(cur_state, cur_action, self.ode, config.dt)
         # print(next_state)
 
         next_state = self.solver.get(1, "x")
@@ -170,8 +164,5 @@ class ModelPredictiveController(Controller):
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state
-
-        print("Error: ", error)
-        print("")
 
         return action, next_state, pos, error

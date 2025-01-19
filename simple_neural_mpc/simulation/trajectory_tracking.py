@@ -4,15 +4,19 @@ from itertools import count, cycle
 
 import matplotlib.pyplot as plt
 import numpy as np
+from IPython.display import HTML, display
 from matplotlib.animation import FuncAnimation
-from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.gridspec import GridSpec
 
+from simple_neural_mpc.config import MPCConfig as config
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.robots.robot import Robot
 from simple_neural_mpc.simulation.trajectory import Trajectory
 from simple_neural_mpc.utils import project_root
-from simple_neural_mpc.config import MPCConfig as config
+
+
+def display_animation_in_notebook(animation):
+    return HTML(animation.to_jshtml())
 
 
 class TrajectoryTrackingSimulation:
@@ -64,10 +68,10 @@ class TrajectoryTrackingSimulation:
                 ref_traj.append(ref)
             error_traj.append(error)
             elapsed.append(elapsed_time)
-            
+
             # update time
             self.t += config.dt
-            
+
         if animate:
             self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
 
@@ -184,9 +188,7 @@ class TrajectoryTrackingSimulation:
             fig=plt.gcf(),
             func=update,
             frames=N,
-            interval=0,
-            repeat=False,
-            repeat_delay=5000,
+            interval=100,
         )
         plt.ioff()  # interactive mode off
         if save:
@@ -199,4 +201,5 @@ class TrajectoryTrackingSimulation:
                 dpi=180,
             )
         plt.ion()  # interactive mode on
+        display(display_animation_in_notebook(animation))
         plt.show(block=True)

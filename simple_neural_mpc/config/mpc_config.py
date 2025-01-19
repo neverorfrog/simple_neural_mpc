@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
 
-from omegaconf import MISSING
-
 
 @dataclass
 class CostWeights:
@@ -36,7 +34,6 @@ class MPCConfig:
     color: str = "red"
     model_name: str = "unicycle"
     neural: bool = False
-    pinn: bool = False
     cost_weights: CostWeights = field(default_factory=CostWeights)
     input_constraints: InputConstraints = field(default_factory=InputConstraints)
     state_constraints: StateConstraints = field(default_factory=StateConstraints)

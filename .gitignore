@@ -18,6 +18,8 @@ data/
 trained_models/
 build/
 
+ckpt/
+wandb/
 
 # latex
 *.aux

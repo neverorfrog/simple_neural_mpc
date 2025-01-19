@@ -11,6 +11,10 @@ class Integrator(ABC):
     def discrete_ode(self):
         return self._discrete_ode  # redefined by subclass
 
+    @property
+    def f(self):
+        return self._f  # redefined by subclass
+
 
 class Euler(Integrator):
 
@@ -21,6 +25,7 @@ class Euler(Integrator):
         self._discrete_ode = ca.Function(
             "f_discrete", [state, action, h], [x_next]
         ).expand()
+        self._f = f
 
 
 class RK4(Integrator):
@@ -35,6 +40,7 @@ class RK4(Integrator):
         self._discrete_ode = ca.Function(
             "f_discrete", [state, action, h], [state_next]
         ).expand()
+        self._f = f
 
 
 class RK2(Integrator):
@@ -47,3 +53,4 @@ class RK2(Integrator):
         self._discrete_ode = ca.Function(
             "f_discrete", [state, action, h], [state_next]
         ).expand()
+        self._f = f

@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+import torch
 from matplotlib.axes import Axes
 
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 
 class Robot(ABC):
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # Initialize state
         self.state: FancyVector = self.__class__.create_state()
         # Initialize input
@@ -26,6 +28,19 @@ class Robot(ABC):
     @property
     @abstractmethod
     def transition(self):
+        pass
+
+    @property
+    @abstractmethod
+    def f(self):
+        pass
+
+    @abstractmethod
+    def f_expl(self, t: float, x: np.ndarray, u: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def torch_f(self, x: torch.Tensor, u: torch.Tensor) -> torch.Tensor:
         pass
 
     @classmethod
