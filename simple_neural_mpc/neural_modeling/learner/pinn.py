@@ -8,6 +8,7 @@ from simple_neural_mpc.config.neural_config import PinnConfig as config
 from simple_neural_mpc.config.neural_config import (
     TrainerConfig as trainer_config,
 )
+from simple_neural_mpc.neural_modeling.learner.mlp import MLP
 from simple_neural_mpc.robots.robot import Robot
 
 
@@ -24,21 +25,11 @@ class Pinn(L.LightningModule):
         self.robot = robot
         self.data_range = data_range
 
-        self.state_dim = len(self.robot.state)
-        self.input_dim = len(self.robot.input)
-        nn_input_dim = self.state_dim + self.input_dim + 1
-        nn_output_dim = self.state_dim
-
         self.lower_bound = data_range[0]
         self.upper_bound = data_range[1]
-
-        self.mlp = torch.nn.Sequential(
-            torch.nn.Linear(nn_input_dim, config.latent_dim),
-            torch.nn.Tanh(),
-            torch.nn.Linear(config.latent_dim, config.latent_dim),
-            torch.nn.Tanh(),
-            torch.nn.Linear(config.latent_dim, nn_output_dim),
-        )
+        self.state_dim = len(robot.state)
+        self.input_dim = len(robot.input)
+        self.mlp = MLP(self.state_dim, self.input_dim, in_mpc = False)
 
         self.mse = torch.nn.MSELoss()
         self.automatic_optimization = False

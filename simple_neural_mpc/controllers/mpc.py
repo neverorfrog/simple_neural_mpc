@@ -5,13 +5,13 @@ from pathlib import Path
 import numpy as np
 from acados_template import AcadosOcp, AcadosOcpSolver
 
-from simple_neural_mpc.config.mpc_config import MPCConfig as config
+from simple_neural_mpc.config.mpc_config import MPCConfig
 from simple_neural_mpc.controllers.controller import Controller
 from simple_neural_mpc.robots.unicycle import Unicycle, UnicycleAction
 from simple_neural_mpc.simulation.trajectory import Trajectory
 
 np.random.seed(31)
-
+config = MPCConfig()
 
 class MPC(Controller):
     def __init__(
@@ -70,8 +70,9 @@ class MPC(Controller):
             # Cost
             self.ocp.cost.cost_type = "LINEAR_LS"
             self.ocp.cost.cost_type_e = "LINEAR_LS"
+            cost_w = config.cost_weights
             self.ocp.cost.W = np.diag(
-                np.array([10, 10, 0.1, 1, 1])
+                np.array([cost_w.ex, cost_w.ey, 0.1, cost_w.v, cost_w.w])
             )  # weight matrix for stage cost
             self.ocp.cost.W_e = np.diag(
                 np.array([15, 15, 1])
@@ -80,7 +81,14 @@ class MPC(Controller):
             # Constraints
             x_0, y_0, psi_0 = self.robot.state.values
             self.ocp.constraints.x0 = np.array([x_0, y_0, psi_0])
-
+            # c = config.constraints
+            # self.ocp.constraints.lbx = np.array([c.x_min, c.y_min, c.psi_min])
+            # self.ocp.constraints.ubx = np.array([c.x_max, c.y_max, c.psi_max])
+            # self.ocp.constraints.idxbx = np.arange(self.ns)
+            # self.ocp.constraints.lbu = np.array([c.v_min, c.w_min])
+            # self.ocp.constraints.ubu = np.array([c.v_max, c.w_max])
+            # self.ocp.constraints.idxbu = np.arange(self.na)
+            
             # Reference
             self.ocp.cost.yref = np.zeros((self.n_opt))
             self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
@@ -88,7 +96,10 @@ class MPC(Controller):
             # Solver Options
             self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
             self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            self.ocp.solver_options.integrator_type = "ERK"
+            if config.neural is True:
+                self.ocp.solver_options.integrator_type = "DISCRETE"
+            else:
+                self.ocp.solver_options.integrator_type = "ERK"
             self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
             self.ocp.solver_options.tol = 1e-3
             self.ocp.solver_options.qp_tol = 1e-3
@@ -152,15 +163,7 @@ class MPC(Controller):
         robot.input = action
 
         cur_state = robot.state.values
-        # cur_action = np.array([action.v, action.w])
-        next_state = cur_state + 0.1 * np.array(
-            [action.v * np.cos(cur_state[2]), action.v * np.sin(cur_state[2]), action.w]
-        )
-        # next_state = self.robot.integrate(cur_state, cur_action, self.ode, config.dt)
-        # print(next_state)
-
-        next_state = self.solver.get(1, "x")
-
+        next_state = self.robot.transition(cur_state, action, 0.1).full().squeeze()
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state

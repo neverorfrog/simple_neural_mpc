@@ -1874,7 +1874,7 @@ packages:
 - pypi: .
   name: simple-neural-mpc
   version: 0.1.0
-  sha256: 4b5f948d9945939216fb67be4e5cec6b66b55fef21284f624e2488e0d816917d
+  sha256: d5c527caabc8f3a9cc3812b557ef338b741d2f8058ede1d04cb06ea2fab63669
   requires_dist:
   - pytest>=8.3.4,<9
   - ipykernel>=6.29.5,<7
@@ -1883,7 +1883,7 @@ packages:
   - torch>=2.5.1,<3
   - lightning>=2.5.0.post0,<3
   - wandb>=0.19.4,<0.20
-  requires_python: ==3.11
+  requires_python: '>=3.11'
   editable: true
 - pypi: https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl
   name: six

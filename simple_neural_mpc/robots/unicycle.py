@@ -66,7 +66,7 @@ class Unicycle(Robot):
         if config.neural is True and self.neural_network is not None:
             self.l4casadi_model = l4c.L4CasADi(self.neural_network, name=model_name)
             neural_dyn = self.l4casadi_model(
-                ca.vertcat(state, control, config.dt)
+                ca.vertcat(state, control, 0.1)
             )  # neural network approximated dynamics (MX)
             f_disc = neural_dyn
             model.disc_dyn_expr = f_disc
@@ -155,7 +155,7 @@ class UnicycleAction(FancyVector):
 
 
 class UnicycleState(FancyVector):
-    def __init__(self, x=0.0, y=0.0, psi=0.0, t=0.0):
+    def __init__(self, x=0.0, y=0.0, psi=0.0):
         """
         :param x: x coordinate | [m]
         :param y: y coordinate | [m]

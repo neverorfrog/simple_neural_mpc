@@ -7,10 +7,10 @@ from simple_neural_mpc.utils import project_root
 class DatasetConfig:
     name: str = "unicycle"
     load_data: bool = False
-    batch_size: int = 32
-    N_type: int = 8  # number of types of trajectories
+    batch_size: int = 64
+    N_type: int = 9  # number of types of trajectories
     N_sample: int = (
-        50  # number of trajectories for type (full dataset will be [N_sample * N_type, len_traj, 2])
+        1000  # number of trajectories for type (full dataset will be [N_sample * N_type, len_traj, 2])
     )
     len_traj: int = 50  # length of trajectory (number of steps)
     n_step_constant_input: int = 10  # number of steps with constant input
@@ -24,17 +24,17 @@ class TrainerConfig:
     wandb_project: str = "simple_neural_mpc"
     ckpt_path: str = f"{project_root()}/ckpt"
     patience: int = 10
-    min_delta: float = 0.0
+    min_delta: float = 0.0001
     max_epochs: int = 100
     resume_training: bool = False
-    weight_decay: float = 1e-5
-    lr: float = 1e-8
+    lr: float = 1e-4
+    weight_decay: float = 1e-8
 
 
 @dataclass
 class PinnConfig:
     latent_dim: int = 124
-    pinn: bool = False
+    pinn: bool = True
     imit_loss_weight: float = 1.0
     physics_loss_weight: float = 1.0
     boundary_loss_weight: float = 1.0

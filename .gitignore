@@ -20,6 +20,7 @@ build/
 
 ckpt/
 wandb/
+lightning_logs/
 
 # latex
 *.aux
