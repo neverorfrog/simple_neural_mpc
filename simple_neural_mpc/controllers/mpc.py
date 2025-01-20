@@ -81,13 +81,13 @@ class MPC(Controller):
             # Constraints
             x_0, y_0, psi_0 = self.robot.state.values
             self.ocp.constraints.x0 = np.array([x_0, y_0, psi_0])
-            # c = config.constraints
-            # self.ocp.constraints.lbx = np.array([c.x_min, c.y_min, c.psi_min])
-            # self.ocp.constraints.ubx = np.array([c.x_max, c.y_max, c.psi_max])
-            # self.ocp.constraints.idxbx = np.arange(self.ns)
-            # self.ocp.constraints.lbu = np.array([c.v_min, c.w_min])
-            # self.ocp.constraints.ubu = np.array([c.v_max, c.w_max])
-            # self.ocp.constraints.idxbu = np.arange(self.na)
+            c = config.constraints
+            self.ocp.constraints.lbx = np.array([c.x_min, c.y_min, c.psi_min])
+            self.ocp.constraints.ubx = np.array([c.x_max, c.y_max, c.psi_max])
+            self.ocp.constraints.idxbx = np.arange(self.ns)
+            self.ocp.constraints.lbu = np.array([c.v_min, c.w_min])
+            self.ocp.constraints.ubu = np.array([c.v_max, c.w_max])
+            self.ocp.constraints.idxbu = np.arange(self.na)
             
             # Reference
             self.ocp.cost.yref = np.zeros((self.n_opt))
@@ -161,7 +161,7 @@ class MPC(Controller):
         action = self.solver.solve_for_x0(robot.state.values)
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
-
+        
         cur_state = robot.state.values
         next_state = self.robot.transition(cur_state, action, 0.1).full().squeeze()
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
