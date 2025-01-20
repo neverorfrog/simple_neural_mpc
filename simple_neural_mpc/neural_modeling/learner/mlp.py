@@ -25,6 +25,8 @@ class MLP(nn.Module):
             Sine(),
             torch.nn.Linear(config.latent_dim, config.latent_dim),
             Sine(),
+            torch.nn.Linear(config.latent_dim, config.latent_dim),
+            Sine(),
             torch.nn.Linear(config.latent_dim, self.nn_output_dim),
         )
 
@@ -34,6 +36,8 @@ class MLP(nn.Module):
         """
         if self.in_mpc:
             input = x[:, : self.nn_input_dim].T
+        else:
+            input = x
         fc_output = self.mlp(input)
         output = fc_output.T if self.in_mpc else fc_output
         return output

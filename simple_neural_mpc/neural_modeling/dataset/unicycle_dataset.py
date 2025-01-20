@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import torch
 from scipy.integrate import solve_ivp
@@ -26,11 +27,12 @@ class UnicycleDataset:
 
         k = config.n_step_constant_input
         X, Y = [], []
-        for traj in range(len(input_dataset)):
-            traj_input = input_dataset[traj, :, :]
-
+        for j in range(len(input_dataset)):
+            traj_input = input_dataset[j, :, :]
+            
             # integrate the trajectory
-            initial_state = np.random.randn(3)
+            initial_state = np.random.uniform(-1, 1, 3)
+            initial_state[2] = np.random.uniform(-np.pi, np.pi)
             states = [initial_state]
             controls = []
             times = [np.array([0.0])]
@@ -46,7 +48,7 @@ class UnicycleDataset:
                     t_eval=[t_span[1]],
                     method="RK45",
                 )
-
+                
                 states.append(sol.y.squeeze())
                 times.append(sol.t)
                 controls.append(control)
@@ -54,34 +56,44 @@ class UnicycleDataset:
             s = np.stack(states)
             c = np.stack(controls)
             t = np.stack(times)
+            
+            # print(s.shape)
+            # print(initial_state[:2])
+            # print(np.rad2deg(initial_state[2]))
+            # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+            # ax.plot(s[:, 0], s[:, 1], "r")
 
             # create sample for dataset
             X_traj_i, Y_traj_i = [], []
             for i in range(0, len(c), k):
                 x0 = s[i][np.newaxis, :].repeat(k, axis=0)
+                # print(x0)
+                
                 c_substep = c[i : i + k]
-                t = np.arange(0, config.delta_t_for_step * k, config.delta_t_for_step)[
-                    :, np.newaxis
-                ]
-
+                # print(c_substep)
+                
+                t = np.arange(0, config.delta_t_for_step * k, config.delta_t_for_step)[:, np.newaxis]
+                # print(t)
+                
                 x = np.hstack([x0, c_substep, t])
+                # print(x)
                 X_traj_i.append(x)
 
                 y = s[i : i + k]
+                # print(y)
+                
                 Y_traj_i.append(y)
+                # exit()
 
             X.append(np.concatenate(X_traj_i))
             Y.append(np.concatenate(Y_traj_i))
 
-        X = torch.from_numpy(
-            np.stack(X).reshape(-1, config.N_sample, 6), dtype=torch.float32
-        )
-        Y = torch.from_numpy(
-            np.stack(Y).reshape(-1, config.N_sample, 3), dtype=torch.float32
-        )
+        X = torch.from_numpy(np.stack(X).reshape(-1, config.len_traj, 6))
+        Y = torch.from_numpy(np.stack(Y).reshape(-1, config.len_traj, 3))
         data = TensorDataset(X, Y)
         return data
-
+    
+    
     @staticmethod
     def generate_input_data() -> np.ndarray:
         """
@@ -90,8 +102,8 @@ class UnicycleDataset:
         trajectory_input = []
 
         # define range of controls:  +-1 m/s for v and +-1 rad/s for w
-        input_range_pos = np.array([-0.25, +1])
-        input_range_neg = np.array([-1, +0.25])
+        input_range_pos = np.array([-0.25, +2])
+        input_range_neg = np.array([-2, +0.25])
 
         # 1 straight line forward -> [v > 0, w = 0]
         v = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
@@ -132,11 +144,18 @@ class UnicycleDataset:
         v = np.zeros((config.N_sample, config.len_traj, 1))
         w = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
         trajectory_input.append(np.concatenate([v, w], axis=-1))
-
+        
+        # 9 zero input + super small noise (+-0,05)
+        v = np.zeros((config.N_sample, config.len_traj, 1)) + np.random.uniform(-0.05, 0.05, (config.N_sample, config.len_traj, 1))
+        w = np.zeros((config.N_sample, config.len_traj, 1)) + np.random.uniform(-0.05, 0.05, (config.N_sample, config.len_traj, 1))
+        trajectory_input.append(np.concatenate([v, w], axis=-1))
+        
         input_dataset = np.concatenate(trajectory_input, axis=0)
+        
+        # make input constant (equal to the first one) for n_step_constant_input steps
         for i in range(0, input_dataset.shape[1], config.n_step_constant_input):
             input_dataset[:, i : i + config.n_step_constant_input, :] = input_dataset[
                 :, i, :
             ][:, np.newaxis, :]
-
+            
         return input_dataset
