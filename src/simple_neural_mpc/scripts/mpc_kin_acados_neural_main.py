@@ -49,7 +49,7 @@ torch_model.load_state_dict(
 # torch_model.eval()
 
 if __name__ == "__main__":
-    reference = Circle(freq=0.3)
+    reference = Circle(freq=0.05)
     
     # Bicycle model and corresponding controller
     robot_config = load_config(

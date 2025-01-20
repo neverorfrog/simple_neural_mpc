@@ -164,7 +164,7 @@ class ModelPredictiveController(Controller):
         # next_state = self.robot.integrate(cur_state, cur_action, self.ode, self.config.dt)
         # print(next_state)
         
-        next_state = self.solver.get(1, "x")
+        # next_state = self.solver.get(1, "x")
         
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
