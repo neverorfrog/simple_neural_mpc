@@ -1,7 +1,3 @@
-\todo[inline]{uav simplified model}
-\todo[inline]{uav complete model}
-\todo[inline]{mpc structure}
-
 Model Predictive Control (MPC), it is an optimal control technique where the actions are chosen solving an optimization problem, composed by a set of constraints and an
 objective function to be minimized over a finite horizon.
 \begin{align}
@@ -10,6 +6,9 @@ objective function to be minimized over a finite horizon.
     & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
     & x(0) = x_{\text{0}}
 \end{align}
+Here, $\mathcal{U}$ and $\mathcal{X}$ denote the admissible sets for inputs and states, respectively, while $x_{\text{0}}$ is the initial state.
+One of the main advantages of this control approach is the ability to handle multivariable interactions and constraints. However, solving the above optimization problem in real time can be computationally challenging, especially for large-scale or highly nonlinear systems. This is one reason why neural networks have been employed to either approximate the system model or enhance the optimization process. In our case, we have used Neural Networks to predict the next state after the application of the control input given by the MPC.
+
 \subsection{Cost function}
 Our objective is to minimize at each step the error with respect to the reference 
 trajectory, both in traslational and orientational dimension, while also maintaining the
@@ -17,10 +16,61 @@ module of the input actions as low as possible. A terminal state term is present
 where the traslational and orientational errors of the last horizon step are tried to 
 be minimized. Thus, the cost function is composed by the following three terms:
 \begin{enumerate}
-    \item \textbf{Spatial error}: at each step of the horizon, errors along x-axis, y-axis and error of orientation 
+    \item \textbf{Spatial error}: at each step of the horizon, the squared errors over the state variables are summed together
+                                  \begin{equation}
+                                      J_{sp_{k}} = W_{x} \sum_{i=0}^{n}x_{i_{k}}^2
+                                  \end{equation}
+                                  where $x_{i_{k}}$ it is the $i$-th component of the state vector at the $k$-th instant.
+
+    \item \textbf{Terminal state}: to make sure the final state over the horizon is good, we add a related penalty term in the terminal state $N$:
+                                   \begin{equation}
+                                    J_{sp_{N}} = W_{x} \sum_{i=0}^{n}x_{i_{N}}^2
+                                   \end{equation}
+                                   where $x_{i_{k}}$ it is the $i$-th component of the state vector at the last instant over the horizon
+    \item \textbf{Input}: it penalizes high values of input controls 
+                                   \begin{equation}
+                                        J_{u_{k}} = W_{u} \sum_{i=0}^{n}u_{i_{k}}^2
+                                   \end{equation}
+                                   where $u_{i_{k}}$ it is the $i$-th component of the control vector at the $k$-th instant.
+                               
+
+\end{enumerate}
+
+\subsection{Constraints}
+The constraints of the NLP concerns some limitations on the state of the vehicle model 
+and on the dynamics of the system. 
+In detail, we have just two constraints:
+\begin{enumerate}
+    \item \textbf{Initial state}: the initial state of the unicycle model must be the current measured state. 
+                                  Therefore, defining the vehicle state as $x$:
+                                  \begin{equation}
+                                    x_0 = x_{current}
+                                  \end{equation}
+    \item \textbf{Dynamics}: given the robot state at a certain time-step as $x_t$, an input at the same time-step as $u_t$
+                             and the dynamic model of the system defined as $\text{f}_\text{expl}$, 
+                             we establish that the next state is obtained by applying the input at the given state according to
+                             dynamic model:
+                             \begin{equation}
+                                x_{t+1} = \text{f}_\text{expl}(x_t, u_t)
+                             \end{equation} 
+\end{enumerate}
+
+\subsection{Unicycle}
+For our formulation, we have considered a discrete-time version of the model equations (\ref{eq:unicycle}) obtained via Euler integration:
+\begin{align}
+    \label{eq:unicycle_euler}
+    \begin{cases}
+        x_{k+1} = x_{k} + T_s\, v_{k} \cos \theta_{k}, \\
+        y_{k+1} = y_{k} + T_s\, v_{k} \sin \theta_{k}, \\
+        \theta_{k+1} = \theta_{k} + T_s\, \omega_{k}.
+    \end{cases}
+\end{align}
+According to this, the cost function terms are the following ones:
+\begin{enumerate}
+    \item \textbf{Spatial error}: at each step of the horizon, the squared errors along x-axis, y-axis and error of orientation 
                                   are summed together
                                   \begin{equation}
-                                      J_{sp} = W_{e_x} e_x + W_{e_y} e_y + W_{e_{\theta}} e_{\theta}
+                                      J_{sp} = W_{e_x} e_{x}^2 + W_{e_y} e_{y}^2 + W_{e_{\theta}} e_{\theta}^2
                                   \end{equation}
                                   where 
                                   \begin{subequations}
@@ -34,83 +84,12 @@ be minimized. Thus, the cost function is composed by the following three terms:
     \item \textbf{Terminal state}: to make sure the final stage is a good one, we add a penalty on errors along x-axis, y-axis and error of orientation
                                    in the terminal state
                                    \begin{equation}
-                                        J_{term} = W_{e_{x_{term}}} e_{x_{term}} + W_{e_{y_{term}}} e_{y_{term}} + W_{e_{{\theta}_{term}}} e_{{\theta}_{term}}
+                                        J_{term} = W_{e_{x_{N}}} e_{x_{N}}^2 + W_{e_{y_{N}}} e_{y_{N}}^2 + W_{e_{{\theta}_{N}}} e_{{\theta}_{N}}^2
                                    \end{equation}
 
     \item \textbf{Input}: it penalizes high values of input controls 
                                    \begin{equation}
-                                        J_{u} = W_{v} v + W_{\omega}  \omega
+                                        J_{u} = W_{v} v^2 + W_{\omega}  \omega^2
                                    \end{equation}
-                               
-
-\end{enumerate}
-
-\subsection{Constraints}
-The constraints of the NLP concerns some limitations on the state of the vehicle model 
-and on the dynamics of the system. 
-In detail, we have just two constraints:
-\begin{enumerate}
-    \item \textbf{Initial state}: the initial state of the unicycle model must be the current measured state. 
-                                  Therefore, defining the vehicle state as $x$:
-                                  \begin{equation}
-                                    x_0 = x_{measured}
-                                  \end{equation}
-    \item \textbf{Dynamics}: given the unicycle state at a certain time-step as $x_t$, an input at the same time-step as $u_t$
-                             and the dynamic model of the system defined as $\text{f}_\text{expl}$, 
-                             we establish that the next state is obtained by applying the input at the given state according to
-                             dynamic model:
-                             \begin{equation}
-                                x_{t+1} = \text{f}_\text{expl}(x_t, u_t)
-                             \end{equation} 
-\end{enumerate}
-
-
-One of the main advantages of this control approach is the ability to handle multivariable interactions and constraints. However, solving the above optimization problem in real time can be computationally challenging, especially for large-scale or highly nonlinear systems. This is one reason why neural networks have been employed to either approximate the system model or enhance the optimization process. In our case, we have used Neural Networks to predict the next state after the application of the control input given by the MPC.
-\todo[inline]{application of mpc to unicycle and quadrotor}
-\begin{align}
-    \mathbf{R}_{\text{RPY}} &=
-        \begin{bmatrix}
-        \cos\psi \cos\theta & \cos\psi \sin\theta \sin\phi - \sin\psi \cos\phi & \cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
-        \sin\psi \cos\theta & \sin\psi \sin\theta \sin\phi + \cos\psi \cos\phi & \sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
-        -\sin\theta & \cos\theta \sin\phi & \cos\theta \cos\phi
-        \end{bmatrix}
-    \\
-    \dot{\mathbf{v}} &= 
-        \begin{bmatrix}
-    0.0 \\
-    0.0 \\
-    -\text{g}
-        \end{bmatrix}
-    +
-    \mathbf{R}_{\text{RPY}} \cdot
-    \begin{bmatrix}
-        0.0 \\
-        0.0 \\
-        \frac{T}{m}
-    \end{bmatrix}
-\end{align}
-In our implementation, we have used a simplified dynamic model for the quadrotor instead of the simplified second order system.
-\begin{align}
-    \begin{cases}
-        \ddot{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
-        \ddot{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
-        \ddot{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
-        \ddot{\phi} = \frac{\tau_{\phi}}{I_{x}}\\
-        \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}}\\
-        \ddot{\psi} = \frac{\tau_{\psi}}{I_{z}}\\ 
-    \end{cases}  
-\end{align}
-
-\begin{align}
-    \begin{cases}
-        \dot{x} = v_{x}\\
-        \dot{y} = v_{y}\\
-        \dot{z} = v_{z}\\
-        \dot{v}_{x} = (\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
-        \dot{v}_{y} = (\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
-        \dot{v}_{z} = (\cos\theta \cos\phi) \frac{T}{m} -g\\
-        \dot{\phi} = \\
-        \dot{\theta} = \\
-        \dot{\psi} = \\ 
-    \end{cases}  
-\end{align}
+\subsection{Quadrotor}
+\todo[inline]{Spiega modello quadrotor}

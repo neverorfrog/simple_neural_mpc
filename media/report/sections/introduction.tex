@@ -1,18 +1,14 @@
-\todo[inline]{crazyflie pic + brief description}
-
 Model Predictive Control (MPC) has emerged as a powerful control strategy
-in robotics due to its ability to handle constraints and optimize system
+in robotics thanks to its ability to handle constraints and optimize system
 behavior over a prediction horizon. When combined with neural networks,
 which can learn complex system dynamics, it creates a promising framework
-for controlling nonlinear systems.
+for controlling nonlinear systems like UAVs.
 
 This report presents the implementation and analysis of a Neural Model
-Predictive Control (NMPC) scheme applied to a quadrotor. The
-unicycle serves as an excellent test case due to its nonlinear dynamics, 
-making it both challenging and representative of real-world robotic systems.
-Besides, we followed a bottom-up approach, testing the pipeline first on a unicycle, 
+Predictive Control (NMPC) scheme applied to a quadrotor. 
+We followed a bottom-up approach, testing the pipeline first on a Unicycle, 
 which still has a nonlinear dynamics, but is easier to treat due a simpler model and faster
-prototyping possiblities.
+prototyping possibilities.
 
 Our approach integrates Physical Informed Neural Network to approximate the
 quadrotor's dynamics, which are then utilized within an MPC framework to
