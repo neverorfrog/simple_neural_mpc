@@ -5,16 +5,16 @@ from simple_neural_mpc.utils import project_root
 
 @dataclass
 class DatasetConfig:
-    name: str = "derivatives_with_zeros"
+    name: str = "trajectories"
     load_data: bool = False
-    batch_size: int = 32
+    batch_size: int = 1
     N_type: int = 9  # number of types of trajectories
     N_sample: int = (
         50  # number of trajectories for type (full dataset will be [N_sample * N_type, len_traj, 2])
     )
-    len_traj: int = 1000  # length of trajectory (number of steps)
+    len_traj: int = 100  # length of trajectory (number of steps)
     n_step_constant_input: int = 10  # number of steps with constant input
-    delta_t_for_step: float = 0.001
+    delta_t_for_step: float = 0.01
     ratios = [0.8, 0.15, 0.05]
 
 
@@ -23,11 +23,11 @@ class TrainerConfig:
     wandb_api_key: str = "41e4ba7425e35355cd4456863ed4cd9c73c084a3"
     wandb_project: str = "neural_mpc_mlp"
     ckpt_path: str = f"{project_root()}/ckpt"
-    patience: int = 5
-    min_delta: float = 0.00001
+    patience: int = 10
+    min_delta: float = 0.0001
     max_epochs: int = 50
     resume_training: bool = False
-    lr: float = 1e-4
+    lr: float = 1e-3
     weight_decay: float = 1e-8
 
 

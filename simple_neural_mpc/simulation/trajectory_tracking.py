@@ -68,6 +68,13 @@ class TrajectoryTrackingSimulation:
                 ref_traj.append(ref)
             error_traj.append(error)
             elapsed.append(elapsed_time)
+            
+            print("---------------------------")
+            print("STATE: ", state)
+            print("ACTION: ", action)
+            print("ERROR: ", error)
+            print("--------------------------")
+            print("\n\n\n")
 
             # update time
             self.t += config.dt

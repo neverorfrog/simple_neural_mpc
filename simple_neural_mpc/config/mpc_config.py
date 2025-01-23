@@ -5,24 +5,28 @@ import numpy as np
 
 @dataclass
 class CostWeights:
-    ex: float = 15
-    ey: float = 15
-    v: float = 0.1
-    w: float = 0.1
+    ex: float = 5
+    ey: float = 5
+    epsi: float = 0.1
+    v: float = 0.01
+    w: float = 0.01
+    ex_term: float = 10
+    ey_term: float = 10
+    epsi_term: float = 1
 
 
 @dataclass
 class Constraints:
-    x_min: float = -2
-    x_max: float = 2
-    y_min: float = -2
-    y_max: float = 2
-    psi_min: float = -np.pi
-    psi_max: float = np.pi
+    x_min: float = -1
+    x_max: float = 1
+    y_min: float = -1
+    y_max: float = 1
+    psi_min: float = -1
+    psi_max: float = 1
     v_min: float = -1
     v_max: float = 1
-    w_min: float = -0.5
-    w_max: float = 0.5
+    w_min: float = -1
+    w_max: float = 1
 
 
 @dataclass

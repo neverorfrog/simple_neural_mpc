@@ -64,7 +64,7 @@ class Dritto(Trajectory):
 
 
 class Circle(Trajectory):
-    def __init__(self, T=6, center=np.array([0, 0]), radius=1, freq=0.2):
+    def __init__(self, T=6, center=np.array([0, 0]), radius=0.5, freq=0.2):
         """
         This is the constructor for the circle trajectory
 

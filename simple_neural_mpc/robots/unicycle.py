@@ -9,7 +9,7 @@ from simple_neural_mpc.config.mpc_config import MPCConfig as config
 from simple_neural_mpc.robots.robot import Robot
 from simple_neural_mpc.simulation.plotting import plot_wheeled_robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
-from simple_neural_mpc.utils.integrators import RK4
+from simple_neural_mpc.utils.integrators import RK4, Euler
 
 
 class Unicycle(Robot):
@@ -38,22 +38,9 @@ class Unicycle(Robot):
             ca.MX.sym("psi_dot"),
         )
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
-
-        # Explicit ODE
-        x_dot = v * ca.cos(psi)
-        y_dot = v * ca.sin(psi)
-        psi_dot = w
-        f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
-        self.integrator = RK4(state, control, f_expl, dt)
-
-        # Implicit ODE
-        f_impl = state_dot - f_expl
-
-        # Create acados model
+        
         model = AcadosModel()
         model.name = model_name
-        model.f_expl_expr = f_expl
-        model.f_impl_expr = f_impl
         model.x = state
         model.xdot = state_dot
         model.u = control
@@ -62,7 +49,15 @@ class Unicycle(Robot):
         model.t_label = "$t$ [s]"
         model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
         model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
-
+        
+        # Explicit ODE
+        x_dot = v * ca.cos(psi)
+        y_dot = v * ca.sin(psi)
+        psi_dot = w
+        f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
+        self.integrator = Euler(state, control, f_expl, dt)
+        model.f_expl_expr = f_expl
+        
         if config.is_neural is True and self.neural_network is not None:
             self.l4casadi_model = l4c.L4CasADi(self.neural_network, name=model_name)
             

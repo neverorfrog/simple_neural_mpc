@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 
 from simple_neural_mpc.config.neural_config import PinnConfig as config
-from simple_neural_mpc.config.mpc_config import MPCConfig
-
+from simple_neural_mpc.neural_modeling.learner.highway import HighwayLayer
 
 class MLP(nn.Module):
     """
@@ -16,10 +15,11 @@ class MLP(nn.Module):
     """
 
     def __init__(
-        self, state_dim: int, input_dim: int, in_mpc: bool = True, is_pinn: bool = True
+        self, state_dim: int, input_dim: int, in_mpc: bool = True, is_pinn: bool = True, is_highway: bool = False
     ) -> None:
         super(MLP, self).__init__()
         self.in_mpc = in_mpc
+        self.is_highway = is_highway
         self.nn_input_dim = (
             state_dim + input_dim + 1 if is_pinn else state_dim + input_dim
         )
@@ -32,6 +32,8 @@ class MLP(nn.Module):
             Sine(),
             torch.nn.Linear(config.latent_dim, self.nn_output_dim),
         )
+        
+        self.highway = HighwayLayer(state_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -42,6 +44,13 @@ class MLP(nn.Module):
         else:
             input = x
         fc_output = self.mlp(input)
+        
+        if self.is_highway:
+            if self.in_mpc:
+                fc_output = self.highway(x.T[:, :3], fc_output)
+            else:
+                fc_output = self.highway(x[:, :3], fc_output)
+                
         output = fc_output.T if self.in_mpc else fc_output
         return output
 

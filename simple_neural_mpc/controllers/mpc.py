@@ -26,7 +26,7 @@ class MPC(Controller):
         self.to_generate = to_generate
         self.k = 0  # current iteration
         self._init_ocp()
-        self.ode = lambda x, u: np.array([u[0] * np.cos(x[2]), u[1] * np.sin(x[2]), u[1]])
+        self.ode = lambda x, u: np.array([u[0] * np.cos(x[2]), u[0] * np.sin(x[2]), u[1]])
 
     def _init_ocp(self):
         if not self.to_generate:
@@ -72,10 +72,10 @@ class MPC(Controller):
             self.ocp.cost.cost_type_e = "LINEAR_LS"
             cost_w = config.cost_weights
             self.ocp.cost.W = np.diag(
-                np.array([cost_w.ex, cost_w.ey, 0.1, cost_w.v, cost_w.w])
+                np.array([cost_w.ex, cost_w.ey, cost_w.epsi, cost_w.v, cost_w.w])
             )  # weight matrix for stage cost
             self.ocp.cost.W_e = np.diag(
-                np.array([15, 15, 1])
+                np.array([cost_w.ex_term, cost_w.ey_term, cost_w.epsi_term])
             )  # weight matrix for terminal cost
 
             # Constraints
@@ -163,7 +163,7 @@ class MPC(Controller):
         robot.input = action
         
         cur_state = robot.state.values
-        next_state = self.robot.transition(cur_state, action, config.dt).full().squeeze()
+        next_state = robot.transition(cur_state, action, config.dt).full().squeeze()
         
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
