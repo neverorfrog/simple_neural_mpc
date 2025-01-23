@@ -7,13 +7,13 @@ from simple_neural_mpc.config.neural_config import DatasetConfig as config
 from simple_neural_mpc.neural_modeling.dataset.tensor_dataset import (
     TensorDataset,
 )
-from simple_neural_mpc.robots.robot import Robot
+from simple_neural_mpc.robots.unicycle import Unicycle
 
 
 class UnicycleDataset:
 
     @staticmethod
-    def generate_data(robot: Robot) -> TensorDataset:
+    def generate_data(robot: Unicycle) -> TensorDataset:
         """
         Generates data
         """
@@ -90,8 +90,48 @@ class UnicycleDataset:
 
         X = torch.from_numpy(np.stack(X).reshape(-1, config.len_traj, 6))
         Y = torch.from_numpy(np.stack(Y).reshape(-1, config.len_traj, 3))
-        data = TensorDataset(X, Y)
-        return data
+        return TensorDataset(X, Y)
+    
+    
+    @staticmethod
+    def generate_data_derivative(robot: Unicycle) -> TensorDataset:
+        """
+        Generates data
+        """
+        # Define range of controls
+        v_input_range = np.array([-3, +3])
+        w_input_range = np.array([-1, +1])
+        
+        # Generate random input data
+        v_input_data = torch.from_numpy(np.random.uniform(v_input_range[0], v_input_range[1], (100_000))).reshape(-1, 1)
+        w_input_data = torch.from_numpy(np.random.uniform(w_input_range[0], w_input_range[1], (100_000))).reshape(-1, 1)
+        random_input_data = torch.hstack([v_input_data, w_input_data])
+        
+        # Generate zero input data combinations
+        zero_v_input_data = torch.hstack([torch.zeros((5000, 1)), w_input_data[:5000]])
+        zero_w_input_data = torch.hstack([v_input_data[:5000], torch.zeros((5000, 1))])
+        all_zero_input_data = torch.hstack([torch.zeros((200, 1)), torch.zeros((200, 1))])
+        zero_input_data = torch.vstack([zero_v_input_data, zero_w_input_data, all_zero_input_data])
+        
+        input_data = torch.vstack([random_input_data, zero_input_data])
+        
+        
+        # Define range of states
+        x_range = np.array([-5, +5])
+        y_range = np.array([-5, +5])
+        theta_range = np.array([-np.pi, +np.pi])
+        
+        # Generate random state data
+        x_data = torch.from_numpy(np.random.uniform(x_range[0], x_range[1], len(input_data))).reshape(-1, 1)
+        y_data = torch.from_numpy(np.random.uniform(y_range[0], y_range[1], len(input_data))).reshape(-1, 1)
+        theta_data = torch.from_numpy(np.random.uniform(theta_range[0], theta_range[1], len(input_data))).reshape(-1, 1)
+        state_data = torch.hstack([x_data, y_data, theta_data])
+        
+        data = torch.hstack([state_data, input_data]).float()
+        labels = robot.torch_f(state_data, input_data).float()
+        
+        dataset = TensorDataset(data, labels)
+        return dataset
     
     
     @staticmethod
@@ -102,8 +142,8 @@ class UnicycleDataset:
         trajectory_input = []
 
         # define range of controls:  +-1 m/s for v and +-1 rad/s for w
-        input_range_pos = np.array([-0.25, +2])
-        input_range_neg = np.array([-2, +0.25])
+        input_range_pos = np.array([-0.25, +1])
+        input_range_neg = np.array([-1, +0.25])
 
         # 1 straight line forward -> [v > 0, w = 0]
         v = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))

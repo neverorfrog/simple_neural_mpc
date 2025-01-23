@@ -11,7 +11,7 @@ from lightning.pytorch.loggers import WandbLogger
 from simple_neural_mpc.config.neural_config import TrainerConfig as config
 
 
-class PinnTrainer(L.Trainer):  # type: ignore[misc]
+class Trainer(L.Trainer):  # type: ignore[misc]
     def __init__(self, group: Optional[str] = None) -> None:
 
         wandb.login(key=config.wandb_api_key)  # type: ignore

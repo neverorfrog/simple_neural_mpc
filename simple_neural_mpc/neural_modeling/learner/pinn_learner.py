@@ -18,10 +18,10 @@ class Phase(Enum):
     TEST = "test"
 
 
-class Pinn(L.LightningModule):
+class PinnLearner(L.LightningModule):
 
     def __init__(self, robot: Robot, data_range: torch.Tensor):
-        super(Pinn, self).__init__()
+        super(PinnLearner, self).__init__()
         self.robot = robot
         self.data_range = data_range
 

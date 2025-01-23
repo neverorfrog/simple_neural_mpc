@@ -71,7 +71,7 @@ class Datamodule(ABC, L.LightningDataModule):
         """
         return self._get_dataloader(self.test_data, config.batch_size, False)
 
-    def _get_dataloader(self, dataset, batch_size, use_weighting):
+    def _get_dataloader(self, dataset: TensorDataset, batch_size: int, use_weighting: bool):
         """
         A function to get a DataLoader with optional weighted sampling.
 
@@ -89,6 +89,7 @@ class Datamodule(ABC, L.LightningDataModule):
         return DataLoader(
             dataset,
             batch_size=batch_size,
+            collate_fn = lambda batch: dataset.collate(batch),
             shuffle=False,
             num_workers=12,
             generator=g,

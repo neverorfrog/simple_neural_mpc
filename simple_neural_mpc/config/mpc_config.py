@@ -1,26 +1,28 @@
 from dataclasses import dataclass, field
 
+import numpy as np
+
 
 @dataclass
 class CostWeights:
-    ex: float = 10
-    ey: float = 10
-    v: float = 1
-    w: float = 1
+    ex: float = 15
+    ey: float = 15
+    v: float = 0.1
+    w: float = 0.1
 
 
 @dataclass
 class Constraints:
-    x_min: float = -5
-    x_max: float = 5
-    y_min: float = -5
-    y_max: float = 5
-    psi_min: float = -3.14
-    psi_max: float = 3.14
+    x_min: float = -2
+    x_max: float = 2
+    y_min: float = -2
+    y_max: float = 2
+    psi_min: float = -np.pi
+    psi_max: float = np.pi
     v_min: float = -1
     v_max: float = 1
-    w_min: float = -1
-    w_max: float = 1
+    w_min: float = -0.5
+    w_max: float = 0.5
 
 
 @dataclass
@@ -29,6 +31,7 @@ class MPCConfig:
     horizon: int = 100
     color: str = "red"
     model_name: str = "unicycle"
-    neural: bool = False
+    is_neural: bool = True
+    is_pinn: bool = True
     cost_weights: CostWeights = field(default_factory=CostWeights)
     constraints: Constraints = field(default_factory=Constraints)

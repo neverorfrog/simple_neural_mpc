@@ -96,7 +96,7 @@ class MPC(Controller):
             # Solver Options
             self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
             self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            if config.neural is True:
+            if config.is_neural is True:
                 self.ocp.solver_options.integrator_type = "DISCRETE"
             else:
                 self.ocp.solver_options.integrator_type = "ERK"
@@ -112,7 +112,7 @@ class MPC(Controller):
             self.ocp.solver_options.N_horizon = config.horizon
 
             # L4Casadi Stuff
-            if config.neural is True and self.robot.neural_network is not None:
+            if config.is_neural is True and self.robot.neural_network is not None:
                 self.ocp.solver_options.model_external_shared_lib_dir = (
                     self.robot.l4casadi_model.shared_lib_dir
                 )
@@ -163,7 +163,8 @@ class MPC(Controller):
         robot.input = action
         
         cur_state = robot.state.values
-        next_state = self.robot.transition(cur_state, action, 0.1).full().squeeze()
+        next_state = self.robot.transition(cur_state, action, config.dt).full().squeeze()
+        
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state
