@@ -13,6 +13,7 @@ from simple_neural_mpc.simulation.trajectory import Trajectory
 np.random.seed(31)
 config = MPCConfig()
 
+
 class MPC(Controller):
     def __init__(
         self,
@@ -88,23 +89,22 @@ class MPC(Controller):
             self.ocp.constraints.lbu = np.array([c.v_min, c.w_min])
             self.ocp.constraints.ubu = np.array([c.v_max, c.w_max])
             self.ocp.constraints.idxbu = np.arange(self.na)
-            
+
             # Reference
             self.ocp.cost.yref = np.zeros((self.n_opt))
             self.ocp.cost.yref_e = np.zeros((self.n_opt_e))
 
             # Solver Options
-            self.ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
-            self.ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
-            if config.is_neural is True:
+            if config.is_neural is True and config.predicts_state is True:
                 self.ocp.solver_options.integrator_type = "DISCRETE"
             else:
                 self.ocp.solver_options.integrator_type = "ERK"
             self.ocp.solver_options.nlp_solver_type = "SQP_RTI"
+            self.ocp.solver_options.Tsim = config.dt
             self.ocp.solver_options.tol = 1e-3
             self.ocp.solver_options.qp_tol = 1e-3
-            self.ocp.solver_options.nlp_solver_max_iter = 500
-            self.ocp.solver_options.qp_solver_iter_max = 100
+            self.ocp.solver_options.nlp_solver_max_iter = 50
+            self.ocp.solver_options.qp_solver_iter_max = 50
             self.ocp.solver_options.print_level = 0
 
             # Prediction Horizon
@@ -161,10 +161,10 @@ class MPC(Controller):
         action = self.solver.solve_for_x0(robot.state.values)
         action = UnicycleAction(v=action[0], w=action[1])
         robot.input = action
-        
+
         cur_state = robot.state.values
         next_state = robot.transition(cur_state, action, config.dt).full().squeeze()
-        
+
         error = np.linalg.norm(next_state[:2] - pos[:, 0])
         next_state = robot.__class__.create_state(*next_state)
         robot.state = next_state

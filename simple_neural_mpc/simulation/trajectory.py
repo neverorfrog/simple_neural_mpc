@@ -47,9 +47,9 @@ class Dritto(Trajectory):
 
     def update(self, t):
 
-        p = np.full((2, len(t)), t * 0.1)
-        pd = np.full((2, len(t)), t * 0.01)
-        pdd = np.full((2, len(t)), t * 0.001)
+        p = np.full((2, len(t)), t * 1)
+        pd = np.full((2, len(t)), t * 0.1)
+        pdd = np.full((2, len(t)), t * 0.01)
         p[1, :] *= 0
         pd[1, :] *= 0
         pdd[1, :] *= 0

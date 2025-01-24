@@ -39,6 +39,7 @@ class Robot(ABC):
     def f_expl(self, t: float, x: np.ndarray, u: np.ndarray) -> np.ndarray:
         pass
 
+    @staticmethod
     @abstractmethod
     def torch_f(self, x: torch.Tensor, u: torch.Tensor) -> torch.Tensor:
         pass

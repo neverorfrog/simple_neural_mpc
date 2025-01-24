@@ -1,8 +1,10 @@
-from matplotlib import pyplot as plt
+from typing import Tuple
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
+from simple_neural_mpc.config.mpc_config import MPCConfig
 from simple_neural_mpc.config.neural_config import DatasetConfig as config
 from simple_neural_mpc.neural_modeling.dataset.tensor_dataset import (
     TensorDataset,
@@ -13,271 +15,196 @@ from simple_neural_mpc.robots.unicycle import Unicycle
 class UnicycleDataset:
 
     @staticmethod
-    def generate_data(robot: Unicycle) -> TensorDataset:
-        """
-        Generates data
-        """
-        input_dataset = UnicycleDataset.generate_input_data()
-        time_range = [0.0, config.len_traj * config.delta_t_for_step]
-        time_points = np.arange(
-            time_range[0],
-            time_range[1] + config.delta_t_for_step,
-            config.delta_t_for_step,
-        )
-
-        k = config.n_step_constant_input
-        X, Y = [], []
-        for j in range(len(input_dataset)):
-            traj_input = input_dataset[j, :, :]
-
-            # integrate the trajectory
-            initial_state = np.random.uniform(-1, 1, 3)
-            initial_state[2] = np.random.uniform(-np.pi, np.pi)
-            states = [initial_state]
-            controls = []
-            times = [np.array([0.0])]
-
-            for i in range(0, len(time_points) - 1):
-                t_span = [time_points[i], time_points[i + 1]]
-                control = traj_input[i, :]
-                sol = solve_ivp(
-                    robot.f_expl,
-                    t_span,
-                    states[-1],
-                    args=(control,),
-                    t_eval=[t_span[1]],
-                    method="RK45",
-                )
-
-                states.append(sol.y.squeeze())
-                times.append(sol.t)
-                controls.append(control)
-
-            s = np.stack(states)
-            c = np.stack(controls)
-            t = np.stack(times)
-
-            # print(s.shape)
-            # print(initial_state[:2])
-            # print(np.rad2deg(initial_state[2]))
-            # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-            # ax.plot(s[:, 0], s[:, 1], "r")
-
-            # create sample for dataset
-            X_traj_i, Y_traj_i = [], []
-            for i in range(0, len(c), k):
-                x0 = s[i][np.newaxis, :].repeat(k, axis=0)
-                # print(x0)
-
-                c_substep = c[i : i + k]
-                # print(c_substep)
-
-                t = np.arange(0, config.delta_t_for_step * k, config.delta_t_for_step)[
-                    :, np.newaxis
-                ]
-                # print(t)
-
-                x = np.hstack([x0, c_substep, t])
-                # print(x)
-                X_traj_i.append(x)
-
-                y = s[i : i + k]
-                # print(y)
-
-                Y_traj_i.append(y)
-                # exit()
-
-            X.append(np.concatenate(X_traj_i))
-            Y.append(np.concatenate(Y_traj_i))
-
-        X = torch.from_numpy(np.stack(X).reshape(-1, config.len_traj, 6))
-        Y = torch.from_numpy(np.stack(Y).reshape(-1, config.len_traj, 3))
-        return TensorDataset(X, Y)
-
-    @staticmethod
-    def generate_data_derivative(robot: Unicycle) -> TensorDataset:
-        """
-        Generates data
-        """
-        # Define range of controls
-        v_input_range = np.array([-5, +5])
-        w_input_range = np.array([-2, +2])
-
-        # Generate random input data
-        v_input_data = torch.from_numpy(
-            np.random.uniform(v_input_range[0], v_input_range[1], (500_000))
-        ).reshape(-1, 1)
-        w_input_data = torch.from_numpy(
-            np.random.uniform(w_input_range[0], w_input_range[1], (500_000))
-        ).reshape(-1, 1)
-        random_input_data = torch.hstack([v_input_data, w_input_data])
-
-        # Generate zero input data combinations
-        zero_v_input_data = torch.hstack([torch.zeros((5000, 1)), w_input_data[:5000]])
-        zero_w_input_data = torch.hstack([v_input_data[:5000], torch.zeros((5000, 1))])
-        all_zero_input_data = torch.hstack(
-            [torch.zeros((5000, 1)), torch.zeros((5000, 1))]
-        )
-        zero_input_data = torch.vstack(
-            [zero_v_input_data, zero_w_input_data, all_zero_input_data]
-        )
-
-        input_data = torch.vstack([random_input_data, zero_input_data])
-
-        # Define range of states
-        x_range = np.array([-5, +5])
-        y_range = np.array([-5, +5])
-        theta_range = np.array([-np.pi, +np.pi])
-
-        # Generate random state data
-        x_data = torch.from_numpy(
-            np.random.uniform(x_range[0], x_range[1], len(input_data))
-        ).reshape(-1, 1)
-        y_data = torch.from_numpy(
-            np.random.uniform(y_range[0], y_range[1], len(input_data))
-        ).reshape(-1, 1)
-        theta_data = torch.from_numpy(
-            np.random.uniform(theta_range[0], theta_range[1], len(input_data))
-        ).reshape(-1, 1)
-        state_data = torch.hstack([x_data, y_data, theta_data])
-
-        data = torch.hstack([state_data, input_data]).float()
-        labels = robot.torch_f(state_data, input_data).float()
-
-        dataset = TensorDataset(data, labels)
-        return dataset
-
-    @staticmethod
     def generate_trajectory_data(robot: Unicycle) -> TensorDataset:
 
-        N_traj = 1000
+        N_traj = config.N_traj
         traj_len = config.len_traj
-        v_input_range = np.array([-3, +3])
-        w_input_range = np.array([-np.pi, +np.pi])
 
-        ode = lambda x, u: np.array([u[0] * np.cos(x[2]), u[0] * np.sin(x[2]), u[1]])
+        state_buffer = []
+        action_buffer = []
+        next_state_buffer = []
+        time_buffer = []
+
+
+        for i in range(N_traj):
+
+            dt = config.delta_t_for_step
+
+            state0 = np.random.uniform(-2, 2, 3)
+            traj_state_buffer = []
+            start_state_buffer = [state0]
+            traj_action_buffer = []
+            traj_next_state_buffer = []
+            traj_time_buffer = []
+
+            sub_traj_len = config.n_step_constant_input
+
+            for _ in range(0, traj_len, sub_traj_len):
+                V, W = generate_input_data(i, sub_traj_len)
+                for k in range(sub_traj_len):
+                    traj_action_buffer.append(np.array([V[k], W[k]]))
+                    next_state = (
+                        robot.transition(
+                            start_state_buffer[-1], traj_action_buffer[-1], dt
+                        )
+                        .full()
+                        .squeeze()
+                    )
+                    traj_next_state_buffer.append(next_state)
+                    traj_state_buffer.append(state0)
+                    start_state_buffer.append(next_state)
+                    traj_time_buffer.append((k + 1) * dt)
+
+                state0 = start_state_buffer[-1]
+
+            traj_state_buffer = np.stack(traj_state_buffer)
+            traj_action_buffer = np.stack(traj_action_buffer)
+            traj_next_state_buffer = np.stack(traj_next_state_buffer)
+            traj_time_buffer = np.stack(traj_time_buffer).reshape(-1, 1)
+
+            state_buffer.append(traj_state_buffer)
+            action_buffer.append(traj_action_buffer)
+            next_state_buffer.append(traj_next_state_buffer)
+            time_buffer.append(traj_time_buffer)
+
+        state_buffer = np.stack(state_buffer)
+        action_buffer = np.stack(action_buffer)
+        next_state_buffer = np.stack(next_state_buffer)
+        time_buffer = np.stack(time_buffer)
+
+        data = torch.from_numpy(
+            np.concatenate([state_buffer, action_buffer, time_buffer], axis=-1)
+        ).float()
+        labels = torch.from_numpy(next_state_buffer).float()
+        return TensorDataset(data, labels)
+    
+    
+    @staticmethod
+    def generate_derivative_data(robot: Unicycle) -> TensorDataset:
+
+        N_traj = config.N_traj
+        traj_len = config.len_traj
 
         state_buffer = []
         action_buffer = []
         derivative_buffer = []
-        next_state_buffer = []
 
-        for _ in range(N_traj):
-            V = np.full(
-                (traj_len), np.random.uniform(v_input_range[0], v_input_range[1], 1)
-            )
-            W = np.full(
-                (traj_len), np.random.uniform(w_input_range[0], w_input_range[1], 1)
-            )
-            state0 = np.random.uniform(-5, 5, 3)
+        for i in range(N_traj):
+
+            dt = config.delta_t_for_step
+
+            state0 = np.random.uniform(-2, 2, 3)
             traj_state_buffer = [state0]
             traj_action_buffer = []
             traj_derivative_buffer = []
-            traj_next_state_buffer = []
 
-            dt = 0.01
-            
-            for j in range(traj_len):
-                
-                traj_action_buffer.append(np.array([V[j], W[j]]))
-                traj_derivative_buffer.append(
-                    ode(traj_state_buffer[-1], traj_action_buffer[-1])
-                )
-                traj_next_state_buffer.append(
+            V, W = generate_input_data(i, traj_len)
+            for k in range(traj_len):
+                traj_action_buffer.append(np.array([V[k], W[k]]))
+                derivative = robot.f_expl(0, traj_state_buffer[-1], traj_action_buffer[-1])
+                next_state = (
                     robot.transition(
                         traj_state_buffer[-1], traj_action_buffer[-1], dt
                     )
                     .full()
                     .squeeze()
                 )
-                traj_state_buffer.append(traj_next_state_buffer[-1])
+                traj_state_buffer.append(next_state)
+                traj_derivative_buffer.append(derivative)
 
-            traj_state_buffer = np.stack(traj_state_buffer)
+
+            traj_state_buffer = np.stack(traj_state_buffer[:-1])
             traj_action_buffer = np.stack(traj_action_buffer)
             traj_derivative_buffer = np.stack(traj_derivative_buffer)
-            traj_next_state_buffer = np.stack(traj_next_state_buffer)
 
-            state_buffer.append(traj_state_buffer[:-1])
+            state_buffer.append(traj_state_buffer)
             action_buffer.append(traj_action_buffer)
             derivative_buffer.append(traj_derivative_buffer)
-            next_state_buffer.append(traj_next_state_buffer)
 
         state_buffer = np.stack(state_buffer)
         action_buffer = np.stack(action_buffer)
-        next_state_buffer = np.stack(next_state_buffer)
+        derivative_buffer = np.stack(derivative_buffer)
 
         data = torch.from_numpy(
             np.concatenate([state_buffer, action_buffer], axis=-1)
         ).float()
-        labels = torch.from_numpy(next_state_buffer).float()
+        labels = torch.from_numpy(derivative_buffer).float()
         return TensorDataset(data, labels)
 
     @staticmethod
-    def generate_input_data() -> np.ndarray:
-        """
-        Generates input data for the robot
-        """
-        trajectory_input = []
+    def generate_test_data(robot: Unicycle) -> TensorDataset:
 
-        # define range of controls:  +-1 m/s for v and +-1 rad/s for w
-        input_range_pos = np.array([-0.25, +1])
-        input_range_neg = np.array([-1, +0.25])
+        N_traj = 100
+        traj_len = 50
 
-        # 1 straight line forward -> [v > 0, w = 0]
-        v = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        w = np.zeros((config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+        state_buffer = []
+        action_buffer = []
+        next_state_buffer = []
+        time_buffer = []
 
-        # 2 straight line backward -> [v < 0, w = 0]
-        v = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        w = np.zeros((config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+        for i in range(N_traj):
 
-        # 3 arc of circle (left) forward ->  [v > 0, w > 0]
-        v = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            state0 = np.random.uniform(-2, 2, 3)
+                
+            V, W = generate_input_data(i, traj_len)
 
-        # 4 arc of circle (left) backward -> [v < 0, w > 0]
-        v = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            traj_state_buffer = [state0]
+            traj_action_buffer = []
+            traj_next_state_buffer = []
+            traj_time_buffer = []
 
-        # 5 arc of circle (right) forward -> [v > 0, w < 0]
-        v = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            dt = 0.01
 
-        # 6 arc of circle (right) backward ->  [v < 0, w < 0]
-        v = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            for j in range(traj_len):
+                traj_action_buffer.append(np.array([V[j], W[j]]))
+                next_state = (
+                    robot.transition(traj_state_buffer[-1], traj_action_buffer[-1], dt)
+                    .full()
+                    .squeeze()
+                )
+                traj_next_state_buffer.append(next_state)
+                traj_state_buffer.append(next_state)
+                traj_time_buffer.append(dt)
 
-        # 7 pure rotation (right) -> [v = 0, w > 0]
-        v = np.zeros((config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_pos, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            traj_state_buffer = np.stack(traj_state_buffer)
+            traj_action_buffer = np.stack(traj_action_buffer)
+            traj_next_state_buffer = np.stack(traj_next_state_buffer)
+            traj_time_buffer = np.stack(traj_time_buffer).reshape(-1, 1)
 
-        # 8 pure rotation (left) -> [v = 0, w < 0]
-        v = np.zeros((config.N_sample, config.len_traj, 1))
-        w = np.random.uniform(*input_range_neg, (config.N_sample, config.len_traj, 1))
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+            state_buffer.append(traj_state_buffer[:-1])
+            action_buffer.append(traj_action_buffer)
+            next_state_buffer.append(traj_next_state_buffer)
+            time_buffer.append(traj_time_buffer)
 
-        # 9 zero input + super small noise (+-0,05)
-        v = np.zeros((config.N_sample, config.len_traj, 1)) + np.random.uniform(
-            -0.05, 0.05, (config.N_sample, config.len_traj, 1)
-        )
-        w = np.zeros((config.N_sample, config.len_traj, 1)) + np.random.uniform(
-            -0.05, 0.05, (config.N_sample, config.len_traj, 1)
-        )
-        trajectory_input.append(np.concatenate([v, w], axis=-1))
+        state_buffer = np.stack(state_buffer)
+        action_buffer = np.stack(action_buffer)
+        next_state_buffer = np.stack(next_state_buffer)
+        traj_time_buffer = np.stack(time_buffer)
 
-        input_dataset = np.concatenate(trajectory_input, axis=0)
+        data = torch.from_numpy(
+            np.concatenate([state_buffer, action_buffer, time_buffer], axis=-1)
+        ).float()
+        labels = torch.from_numpy(next_state_buffer).float()
+        return TensorDataset(data, labels)
+    
+    
+def generate_input_data(i: int, sub_traj_len: int) -> Tuple[np.ndarray]:
+    v_input_range = np.array([-5, +5])
+    w_input_range = np.array([-3, +3])
+    eps = 1e-4
+    if i % 30 < eps:  # every 30 a trajectory of all zeros
+        v = 0
+        w = 0
+    elif i % 10 < eps:  # every 10 a pure rotation
+        v = 0
+        w = np.random.uniform(w_input_range[0], w_input_range[1], 1)
+    elif i % 5 < eps:  # every 5 a straight trajectory
+        v = np.random.uniform(v_input_range[0], v_input_range[1], 1)
+        w = 0
+    else:  # the rest are random
+        v = np.random.uniform(v_input_range[0], v_input_range[1], 1)
+        w = np.random.uniform(w_input_range[0], w_input_range[1], 1)
 
-        # make input constant (equal to the first one) for n_step_constant_input steps
-        for i in range(0, input_dataset.shape[1], config.n_step_constant_input):
-            input_dataset[:, i : i + config.n_step_constant_input, :] = input_dataset[
-                :, i, :
-            ][:, np.newaxis, :]
-
-        return input_dataset
+    V = np.full((sub_traj_len), v)
+    W = np.full((sub_traj_len), w)
+    return V, W

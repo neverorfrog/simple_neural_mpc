@@ -4,8 +4,7 @@ from typing import Optional
 import lightning as L
 import torch
 import wandb
-from lightning.pytorch.callbacks import Callback
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import Callback, EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
 from simple_neural_mpc.config.neural_config import TrainerConfig as config
@@ -21,7 +20,7 @@ class Trainer(L.Trainer):  # type: ignore[misc]
             monitor="val/loss",
             dirpath=config.ckpt_path,
             mode="min",
-            filename="unicycle.pth"
+            filename="unicycle.pth",
         )
 
         early_stopping_callback = EarlyStopping(
@@ -69,10 +68,10 @@ class Trainer(L.Trainer):  # type: ignore[misc]
             dataloaders=datamodule.test_dataloader(),
             ckpt_path=best_ckpt_path,
         )
-        
-        
+
+
 class SaveBestModel(Callback):
-    def __init__(self, monitor: str, dirpath: str,  mode: str, filename: str):
+    def __init__(self, monitor: str, dirpath: str, mode: str, filename: str):
         super().__init__()
         self.monitor = monitor
         self.dirpath = dirpath
@@ -83,7 +82,7 @@ class SaveBestModel(Callback):
         if not os.path.exists(self.dirpath):
             os.makedirs(self.dirpath)
 
-    def on_validation_end(self, trainer, pl_module):
+    def on_validation_end(self, trainer: Trainer, pl_module):
         logs = trainer.callback_metrics
         current_score = logs.get(self.monitor)
 
@@ -93,8 +92,10 @@ class SaveBestModel(Callback):
         if self.best_score is None:
             self.best_score = current_score
 
-        if (self.mode == "min" and current_score < self.best_score) or (self.mode == "max" and current_score > self.best_score):
+        if (
+            self.mode == "min" and current_score < self.best_score - config.min_delta
+        ) or (self.mode == "max" and current_score > self.best_score):
             self.best_score = current_score
-            filepath = os.path.join(self.dirpath, self.filename)
-            torch.save(pl_module.state_dict(), filepath)
-            print(f"Model saved to {filepath}")
+            self.filepath = os.path.join(self.dirpath, self.filename)
+            torch.save(pl_module.state_dict(), self.filepath)
+            print(f"Model saved to {self.filepath}")

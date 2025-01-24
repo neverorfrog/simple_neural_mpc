@@ -42,6 +42,8 @@ class TrajectoryTrackingSimulation:
         error_traj = []
         elapsed = []  # elapsed times
 
+        self.to_be_animated = animate
+
         # Initializing simulation
         state = state_traj[0]
         counter = count(start=0)
@@ -68,19 +70,18 @@ class TrajectoryTrackingSimulation:
                 ref_traj.append(ref)
             error_traj.append(error)
             elapsed.append(elapsed_time)
-            
-            print("---------------------------")
-            print("STATE: ", state)
-            print("ACTION: ", action)
-            print("ERROR: ", error)
-            print("--------------------------")
-            print("\n\n\n")
+
+            # print("---------------------------")
+            # print("STATE: ", state)
+            # print("ACTION: ", action)
+            # print("ERROR: ", error)
+            # print("--------------------------")
+            # print("\n\n\n")
 
             # update time
             self.t += config.dt
 
-        if animate:
-            self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
+        self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
 
     def animate(
         self,
@@ -141,7 +142,7 @@ class TrajectoryTrackingSimulation:
                     f"Average computation time: {np.mean(elapsed[i-5:i])*1000:.2f} ms"
                 )
 
-            start = i - 20 if (i - 20 >= 0) else 0
+            start = 0
 
             ax_large.cla()
             ax_large.set_aspect("equal")
@@ -191,22 +192,27 @@ class TrajectoryTrackingSimulation:
             )
             ax_small3.legend()
 
-        animation = FuncAnimation(
-            fig=plt.gcf(),
-            func=update,
-            frames=N,
-            interval=100,
-        )
-        plt.ioff()  # interactive mode off
-        if save:
-            root = project_root()
-            os.makedirs(f"{root}/videos", exist_ok=True)
-            animation.save(
-                f"{root}/videos/{self.name}.gif",
-                writer="pillow",
-                fps=20,
-                dpi=180,
+        if self.to_be_animated:
+            animation = FuncAnimation(
+                fig=plt.gcf(),
+                func=update,
+                frames=N,
+                interval=100,
             )
-        plt.ion()  # interactive mode on
-        display(display_animation_in_notebook(animation))
-        plt.show(block=True)
+            plt.ioff()  # interactive mode off
+            if save:
+                root = project_root()
+                os.makedirs(f"{root}/videos", exist_ok=True)
+                animation.save(
+                    f"{root}/videos/{self.name}.gif",
+                    writer="pillow",
+                    fps=20,
+                    dpi=180,
+                )
+            plt.ion()  # interactive mode on
+            display(display_animation_in_notebook(animation))
+            plt.show(block=True)
+
+        else:
+            update(N - 1)
+            plt.show()

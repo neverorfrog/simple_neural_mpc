@@ -9,7 +9,7 @@ from simple_neural_mpc.config.mpc_config import MPCConfig as config
 from simple_neural_mpc.robots.robot import Robot
 from simple_neural_mpc.simulation.plotting import plot_wheeled_robot
 from simple_neural_mpc.utils.fancy_vector import FancyVector
-from simple_neural_mpc.utils.integrators import RK4, Euler
+from simple_neural_mpc.utils.integrators import RK2, RK4, Euler
 
 
 class Unicycle(Robot):
@@ -38,7 +38,7 @@ class Unicycle(Robot):
             ca.MX.sym("psi_dot"),
         )
         state_dot = ca.vertcat(x_dot, y_dot, psi_dot)
-        
+
         model = AcadosModel()
         model.name = model_name
         model.x = state
@@ -49,7 +49,7 @@ class Unicycle(Robot):
         model.t_label = "$t$ [s]"
         model.x_labels = ["$x$ [m]", "$y$ [m]", "$\psi$ [rad]"]
         model.u_labels = ["$v$ [m/s]", "$\omega$ [rad/s]"]
-        
+
         # Explicit ODE
         x_dot = v * ca.cos(psi)
         y_dot = v * ca.sin(psi)
@@ -57,21 +57,19 @@ class Unicycle(Robot):
         f_expl = ca.vertcat(x_dot, y_dot, psi_dot)
         self.integrator = Euler(state, control, f_expl, dt)
         model.f_expl_expr = f_expl
-        
+
         if config.is_neural is True and self.neural_network is not None:
             self.l4casadi_model = l4c.L4CasADi(self.neural_network, name=model_name)
-            
+
             if config.is_pinn is True:
-                neural_dyn = self.l4casadi_model(
-                    ca.vertcat(state, control, 0.1)
-                )
+                neural_dyn = self.l4casadi_model(ca.vertcat(state, control, config.dt))
             else:
-                neural_dyn = self.l4casadi_model(
-                    ca.vertcat(state, control)
-                ) 
-                
-            f_disc = neural_dyn
-            model.disc_dyn_expr = f_disc
+                neural_dyn = self.l4casadi_model(ca.vertcat(state, control))
+
+            if config.predicts_state is False:
+                model.f_expl_expr = neural_dyn
+            else:
+                model.disc_dyn_expr = neural_dyn
 
         self.model = model
 
@@ -83,16 +81,20 @@ class Unicycle(Robot):
     def f(self):
         return self.integrator.f
 
-    def torch_f(self, x: torch.Tensor, u: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def torch_f(x: torch.Tensor, u: torch.Tensor) -> torch.Tensor:
         if x.ndim == 1:
             x = x.unsqueeze(0)
         if u.ndim == 1:
             u = u.unsqueeze(0)
-
+            
+        # x: [batch_size, state_dim]
+        # u: [batch_size, input_dim]
+                    
         theta = x[:, 2]
         v = u[:, 0]
         w = u[:, 1]
-
+        
         dx = torch.zeros_like(x)
         dx[:, 0] = torch.cos(theta) * v
         dx[:, 1] = torch.sin(theta) * v

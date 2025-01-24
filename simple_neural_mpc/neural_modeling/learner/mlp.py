@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from simple_neural_mpc.config.neural_config import PinnConfig as config
-from simple_neural_mpc.neural_modeling.learner.highway import HighwayLayer
+
 
 class MLP(nn.Module):
     """
@@ -15,7 +15,13 @@ class MLP(nn.Module):
     """
 
     def __init__(
-        self, state_dim: int, input_dim: int, in_mpc: bool = True, is_pinn: bool = True, is_highway: bool = False
+        self,
+        state_dim: int,
+        input_dim: int,
+        activation: nn.Module,
+        in_mpc: bool = False,
+        is_pinn: bool = True,
+        is_highway: bool = False,
     ) -> None:
         super(MLP, self).__init__()
         self.in_mpc = in_mpc
@@ -25,32 +31,37 @@ class MLP(nn.Module):
         )
         self.nn_output_dim = state_dim
 
-        self.mlp = torch.nn.Sequential(
+        self.fc = torch.nn.Sequential(
             torch.nn.Linear(self.nn_input_dim, config.latent_dim),
-            Sine(),
+            activation,
             torch.nn.Linear(config.latent_dim, config.latent_dim),
-            Sine(),
+            activation,
             torch.nn.Linear(config.latent_dim, self.nn_output_dim),
         )
-        
-        self.highway = HighwayLayer(state_dim)
+
+        if self.is_highway:
+            self.skip = nn.Linear(state_dim, state_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        x has dimension [batch_size, state_dim + action_dim + 1]
+        x has dimension [batch_size, traj_len, state_dim + action_dim + 1]
         """
+        if x.ndim == 2 and not self.in_mpc:
+            x = x.unsqueeze(0)
+            
         if self.in_mpc:
-            input = x[:, : self.nn_input_dim].T
+            input = x.T
         else:
             input = x
-        fc_output = self.mlp(input)
+        fc_output = self.fc(input) # [batch_size, traj_len, state_dim]
         
         if self.is_highway:
             if self.in_mpc:
-                fc_output = self.highway(x.T[:, :3], fc_output)
+                skip_output = self.skip(input.T[: self.nn_output_dim].T)
             else:
-                fc_output = self.highway(x[:, :3], fc_output)
-                
+                skip_output = self.skip(input[:, :, : self.nn_output_dim])
+            fc_output += skip_output
+
         output = fc_output.T if self.in_mpc else fc_output
         return output
 
