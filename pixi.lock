@@ -209,6 +209,7 @@ environments:
       - pypi: .
       - pypi: external/acados/interfaces/acados_template
       - pypi: external/l4acados
+      - pypi: external/l4casadi
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
   sha256: fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726
@@ -234,7 +235,7 @@ packages:
 - pypi: external/acados/interfaces/acados_template
   name: acados-template
   version: '0.1'
-  sha256: 80035229f26d5c55518d4c9573c6e4f0d3536916ac155771547a375e5d571d55
+  sha256: cef15a08c851d07101a7ce643f801e35db39386ab4bd19d88546671be3d94304
   requires_dist:
   - numpy
   - scipy
@@ -998,6 +999,16 @@ packages:
   - l4acados[test] ; extra == 'dev'
   - pre-commit ; extra == 'dev'
   - jupytext ; extra == 'dev'
+  requires_python: '>=3.8'
+  editable: true
+- pypi: external/l4casadi
+  name: l4casadi
+  version: 2.0.0
+  sha256: fb88fb3ae50f1a6a24b8dda00cdec6aba55505f35867ccee18caf87584237168
+  requires_dist:
+  - torch
+  - casadi>=3.6
+  - jinja2>=3.1
   requires_python: '>=3.8'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/lcms2-2.16-hb7c19ff_0.conda

@@ -1,0 +1,19 @@
+In this project we wanted to explore the possibility to integrate
+Pytorch-learned models within CasADI and Acados to provide a learning based
+model predictive controller. This approach allows to exploit the vast
+adaptability of neural networks to many domains (including robotics) while
+exerting some control over the system through MPC, which allows to impose
+constraints. We have shown that this approach is feasible, while presenting
+also some limitations. By far, the main limitation is given by the
+intrinsic nature of neural networks, which don't take into account the
+actual physical meaning of the equations governing the dyanmical system.
+This can be partially solved by using a physics-informed neural network,
+which we did for the unicycle. Another problem is given by how the neural
+network is integrated within the MPC. The optimization problem has its own
+computational graph, and the neural network has its own too, so these two
+graphs need to be merged. This problem was solved by using L4Casadi. Of
+course, this is just an exploratory project and many problems remain to be
+solved.
+
+
+\todo {Add a paragraph on the future work}

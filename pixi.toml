@@ -44,7 +44,7 @@ cmake = ">=3.31.2, <4"
 ninja = ">=1.11.1.3, <2"
 acados_template = {path = "external/acados/interfaces/acados_template", editable = true}
 simple_neural_mpc = { path = ".", editable = true}
-# l4casadi = { path = "external/l4casadi", editable = true}
+l4casadi = { path = "external/l4casadi", editable = true}
 l4acados = { path = "external/l4acados", editable = true}
 ipykernel = ">=6.29.5, <7"
 
