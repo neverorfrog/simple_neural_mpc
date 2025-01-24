@@ -31,3 +31,5 @@ lightning_logs/
 *.blg
 *.tdo
 *.synctex.gz
+*.fdb_latexmk
+*.fls 
