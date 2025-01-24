@@ -1,28 +1,130 @@
-Traditional methods for solving differential equations, such as finite element or finite difference methods, often require discretization of the domain and can be computationally expensive for high-dimensional problems. Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
-The overall loss function $\mathcal{L}$ used is composed by the sum of two terms, which are the data loss $\mathcal{L}_{data}$ and the physics loss $\mathcal{L}_{phy}$. 
+\subsection{Physical Informed Neural Network: Introduction}
+
+
+\begin{wrapfigure}{r}{0.4\textwidth} % 'r' for right alignment, 0.4\textwidth for image width
+    \centering
+    \includegraphics[width=\linewidth]{assets/oscillator.jpg} % Replace with your image file
+    \caption{Example of the Pinn behavior.}
+\end{wrapfigure}
+
+Traditional methods for solving differential equations, such as finite element or finite difference methods, often require discretization of the domain and can be computationally expensive for high-dimensional problems.
+Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
+This approach should be able to generalize outside the training data, fully respect the underlying physics. 
+With outside training data, we intend to say that the model generalize for sample that has never been shown \textbf{inside} the range of training. 
+\\ 
+
+The main loss component of the Pinn is call Physcis Loss, and minimize the discrepancy between the dynamics of the system and the derivative of the network iteself. 
+
+The classica Pinn models takes in input just the time $t$ at which we want to predict the evolution of the system. So, the output of the model is define as $x(t)$.
+For impose particular constrapngints, other losses are taken into account. Example of such loss are the so call \textit{Boundary loss} and the \textit{Initial loss}. 
+The first one is used to impose the boundary condition of the system, while the second one is used to impose the initial condition of the system.
+\\
+
+One limitation of such approach is that the model is not able to generalize to different initial condition: the model need to be trained again for predict a new evolution. 
+Also, as few works have shown, the classica formulation of the Pinn is not stable over long time interval. 
+Finally, the standard pinn model is not able to include the control input into the dynamics. 
+
+For this reason, we have used a extended version of the framework, namely, the Pinn-C (\textit{Pinn with control} \cite{Antonelo_2024}).
+Such works shown as incorporate the control input on the prediction scheme, and has became the de-facto standard for model non-autonomus dynamic evolution (\cite{pinn-manipulators} \cite{ramp-net}).
+The Pinn-C model is analyze in the next section of this report.
+
+\subsection{Physical Informed Neural Network with Control}
+
+
+The Pinn-c framework rely on the assumption that the input is constant over a sub-interval $[0, T_k]$.
+This assumption is used for ensure that the gradient of the output is not "corrupted" by the derivative of the state respect the input signal. 
+In this framework, the input of the network is composed by the initial condition of the sub-transition, the time stamp for which we want to obtain the prediction and the constant control input.
+Doing so, we obtain a set of tuple of the form $\left\{[x_{0}, \bar{u_{k}}, t_k], [x_{t_k}]\right\}$, where $x_{0}$ is the initial state of the system, $t_{k}$ is the time stamp for which we want to predict the evolution and $\bar{u_{k}}$ is the control input applied to the system.
+
+The pinn-c, in the ground, just model a set of smaller evolution, and the discriminative factor remains the time input, as in the standard formulation.  
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{assets/pinc_time.png}
+    \caption{Pinn-c sub-interval integration}
+    \label{sub-transition-integration}
+\end{figure}
+
+For concatenate the sub-trajectories, the starting continion of the next sub-trajectory is setted as the output of the previous interval at time $T$. For a concise representation, see figure \ref{sub-transition-integration}
+Finally, while the standard pinn can not rely on the trajectories from a dataset, the pinn-c must use it. This dependency is modeled as a imitation loss, similar to the standard MLP case. 
+\\
+In such framework it's not possible to rely on multi-step integration for calculate the loss term. Due the definition of input/output of the network, it's impossible to concatenate the previous integration into the future input.
+Extra details on the loss are given on the section below. 
+
+
+\subsubsection{Dataset requirements, generation and constraints}
+
+In our experiment, after generate the evolution of the system, we notice that a good converage of the input space of the network is required.
+In the first phase of the experiment, we have generated a set of trajectories using a fixed family of input, like sinusoidal or step function. 
+Although good result in the training and in the evaluation of the model (isolated form the mpc), we have notice that several phenomena conflict with the integration of the network into the mpc.
+In particular, the network was not able to predict the evolution of the system when the control input was null. Also, basic motion like forward or backward trajectories remains challenging.
+
+For this reason, we have decided to generate a new dataset, where the control input is randomly generated but all the possible combination of sing of the input are taken into account:
+we have generated 8 different combination for the Unicycle:
+\begin{multicols}{2}
+    \begin{itemize}
+        \item $v > 0, w > 0$
+        \item $v > 0, w < 0$
+        \item $v < 0, w > 0$
+        \item $v < 0, w < 0$
+        \item $v > 0, w = 0$ 
+        \item $v < 0, w = 0$
+        \item $v = 0, w > 0$
+        \item $v = 0, w < 0$
+    \end{itemize}
+    
+\end{multicols}
+
+The last possible combination, $v = 0, w = 0$, has been excluded from the dataset, as we model a extra loss term that rely on sampling.
+The dataset has been generated using a Runge-Kutta 4th order method, and the sub-interval has been set to $0.1$ seconds. For approximate the real evolution of the system, 
+the pinn-c framework need different sample in which the input is constant. For this reason, after having discretize the input signal, we have taken up to 10 sub-evolution, leading to a reading of the trajectory of $0.02$ seconds.
+
+Under this assumption and constraint, we have seen that the previously mentioned phenomena are no longer present or at least has been minimize under a significant threshoold.
+
+\subsubsection{Loss definition and training scheme}
+
+The overall loss function $\mathcal{L}$ used is composed by the sum of two main terms, which are the data loss (also call \textit{imit loss}) $\mathcal{L}_{data}$ and the physics loss $\mathcal{L}_{phy}$. 
 \begin{equation}
-    \mathcal{L}(\theta) = \mathcal{L}_{\text{data}}(\theta) + \mathcal{L}_{\text{phys}}(\theta),
+    \mathcal{L}(\theta) = \mathcal{L}_{\text{data}}(\theta) + \mathcal{L}_{\text{phy}}(\theta),
 \end{equation}
+
 The first term defines the discrepancy between the prediction of the network and the observed data, while the second one specifies the correct modeling of the differential equation.
 Usually $\mathcal{L}_{data}$ is define as the mean squared error between the prediction and the ground truth, while $\mathcal{L}_{phy}$ is defined using the residual of the differential equation.
 
-\begin{align}
-    \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2 \\
-    \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
-\end{align}
+For a correct implemnetation of the Physics loss, a sampling strategy is required. The usage of the physics loss can be seen as a self-supervised learning instance, due the fact that do not rely on any dataset.
 
-As previously stated, we have used a bottom-up approach by first testing this approach to a Unicycle. This robot is characterized by simple kinematic equations. Its configuration vector is composed by the cartesian position $(x,y)$ and its orientation angle $\theta$, while the control inputs are the driving velocity $v$ and the steering velocity $w$.
-We have used the PiNN to predict the next state $q_{k+1}$ of the robot given the current state, the control input given by the MPC and the time instant. Over a small time instant we have chosen to use Euler integration to do the approximation of the next state: $q_{k+1} = q_{k} + \Delta t \cdot f(q_{k}, u_{k})$, where the dynamic function is defined as follows.
+At each iteration, the learner must sample a set of initial state, input and time from the relative distribution. Such sample are call "particle". 
+A great number of sampled particle is important for a correct evaluation of the loss function, as reported in the self-supervised learning literature. 
+For such particle, we don't rely on the prediction of the network, but only on the gradient respect the input. Thanks to automatic differentiation, the gradient of the network can be easily calculated.
 
+After having obtained the gradient, we can also calculate the output of the differential equation, and then calculate the loss term:
 \begin{equation}
-    f(q_{k}, u_{k}) = 
-    \begin{cases}
-        {x_{k+1}} = v_{k} \cos(\theta_{k}) \\
-        {y_{k+1}} = v_{k} \sin(\theta_{k}) \\
-        {\theta_{k+1}} = w_{k} \\
-    \end{cases}
+    \mathcal L(\theta)_{physics} = \frac{1}{N} \sum_{i=1}^{N} (\nabla_{x} -  \textit{ode}(x, u, t) )^2
 \end{equation}
+In the previous equation, \textit{ode} is the differential equation that we are try to learn as underlying prior, while $\nabla_(X)$ represent the gradient of the network respect the input state.
+The \textit{ode} function is the same differential equation that we have introduced in the first part, and describe the evolution of our target systems.
+\\
 
-\todo[inline]{definition of losses}
-\todo[inline]{image of pinn time}
+An extra term has been added, as a new boundary condition. When the model has 0 input, the network must became an identity function, returning the same input state as output. 
+This loss is defined as the mean squared error between the prediction and the input. Such application is possible only in the case of driftless system, as the unicycle. 
+In the case of quadrotor, we prefer to include sample with 0 input in the dataset and rely on the integration of the dynamic iteself for incorporate such prior. 
+This approach result in a less robust model, due the fact that the network only see few example of such evolution. In the case of driftless system, such loss can be implemented using a sampling strategy.
+
+As in the physical loss, the input vector has been sampled in the correct range, then we manually zero the input element. 
+
 \todo[inline]{pipeline (prendi foto paper manipulator)}
+
+
+\begin{algorithm}
+    \caption{Pseudocode Representation}
+    \begin{algorithmic}[1]
+    \State $\hat{y} \gets \text{model}(X_{\text{data}})$
+    \State $L \gets L + \text{mse}(y, \hat{y})$
+    \State Sample $X$
+    \State Calculate gradient $J$
+    \State Calculate analytical $\text{ode}(X)$
+    \State $L \gets L + \text{\textbackslash equation}$
+    \State Sample point $X$
+    \State Zero the input
+    \end{algorithmic}
+    \end{algorithm}
