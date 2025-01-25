@@ -92,4 +92,23 @@ According to this, the cost function terms are the following ones:
                                         J_{u} = W_{v} v^2 + W_{\omega}  \omega^2
                                    \end{equation}
 \subsection{Quadrotor}
-\todo[inline]{Spiega modello quadrotor}
+Our work is based on a Crazyflie, which is a real quadrotor characterized by \dots 
+\todo[inline]{infos about crazyflie}
+This particular quadrotor has a particular firmware that takes as inputs roll, pitch and yaw desired positions instead of control torques. This happens since there is a low level attitude controller which performs this mapping for us. As a consequence, we have used a first order modified model for the MPC formulation.
+
+\begin{align}
+    \label{eq:uav_first_order}
+    \begin{cases}
+        \dot{x} = v_{x} \\
+        \dot{y} = v_{y} \\
+        \dot{z} = v_{z} \\
+        \dot{v}_{x} = -(\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi) \frac{T}{m}\\
+        \dot{v}_{y} = -(\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi) \frac{T}{m} \\
+        \dot{v}_{z} = -(\cos\theta \cos\phi) \frac{T}{m} +g\\
+        \dot{\phi} = \frac{\phi_c - \phi}{\tau}\\
+        \dot{\theta} = \frac{\theta_c - \theta}{\tau}\\
+        \dot{\psi} = \frac{\psi_c - \psi}{\tau}\\ 
+    \end{cases}  
+\end{align}
+\todo[inline]{double check + explanation}
+
