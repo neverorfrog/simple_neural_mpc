@@ -61,15 +61,12 @@ class Unicycle(Robot):
         if config.is_neural is True and self.neural_network is not None:
             self.l4casadi_model = l4c.L4CasADi(self.neural_network, name=model_name)
 
-            if config.is_pinn is True:
+            if config.predicts_state is True:
                 neural_dyn = self.l4casadi_model(ca.vertcat(state, control, config.dt))
+                model.disc_dyn_expr = neural_dyn
             else:
                 neural_dyn = self.l4casadi_model(ca.vertcat(state, control))
-
-            if config.predicts_state is False:
                 model.f_expl_expr = neural_dyn
-            else:
-                model.disc_dyn_expr = neural_dyn
 
         self.model = model
 

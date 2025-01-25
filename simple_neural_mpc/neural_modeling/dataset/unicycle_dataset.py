@@ -1,10 +1,7 @@
 from typing import Tuple
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
-from scipy.integrate import solve_ivp
 
-from simple_neural_mpc.config.mpc_config import MPCConfig
 from simple_neural_mpc.config.neural_config import DatasetConfig as config
 from simple_neural_mpc.neural_modeling.dataset.tensor_dataset import (
     TensorDataset,

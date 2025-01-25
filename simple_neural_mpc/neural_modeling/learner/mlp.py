@@ -19,16 +19,14 @@ class MLP(nn.Module):
         state_dim: int,
         input_dim: int,
         activation: nn.Module,
+        predicts_state: bool = True,
         in_mpc: bool = False,
-        is_pinn: bool = True,
         is_highway: bool = False,
     ) -> None:
         super(MLP, self).__init__()
         self.in_mpc = in_mpc
         self.is_highway = is_highway
-        self.nn_input_dim = (
-            state_dim + input_dim + 1 if is_pinn else state_dim + input_dim
-        )
+        self.nn_input_dim = state_dim + input_dim + 1 if predicts_state else state_dim + input_dim
         self.nn_output_dim = state_dim
 
         self.fc = torch.nn.Sequential(
@@ -48,13 +46,13 @@ class MLP(nn.Module):
         """
         if x.ndim == 2 and not self.in_mpc:
             x = x.unsqueeze(0)
-            
+
         if self.in_mpc:
             input = x.T
         else:
             input = x
-        fc_output = self.fc(input) # [batch_size, traj_len, state_dim]
-        
+        fc_output = self.fc(input)  # [batch_size, traj_len, state_dim]
+
         if self.is_highway:
             if self.in_mpc:
                 skip_output = self.skip(input.T[: self.nn_output_dim].T)

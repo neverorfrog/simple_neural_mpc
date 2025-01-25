@@ -9,11 +9,8 @@ from simple_neural_mpc.config.neural_config import (
     TrainerConfig as trainer_config,
 )
 from simple_neural_mpc.neural_modeling.dataset.tensor_dataset import TensorDataset
-from simple_neural_mpc.neural_modeling.learner.mlp import MLP
-from simple_neural_mpc.robots.robot import Robot
-from simple_neural_mpc.config.neural_config import DatasetConfig
+from simple_neural_mpc.neural_modeling.learner.mlp import MLP, Sine
 from simple_neural_mpc.config.mpc_config import MPCConfig
-from simple_neural_mpc.neural_modeling.learner.mlp import Sine
 
 
 class Phase(Enum):
@@ -24,7 +21,7 @@ class Phase(Enum):
 
 class DerivativeLearner(L.LightningModule):
 
-    def __init__(self, state_dim: int, input_dim: int):
+    def __init__(self, state_dim: int, input_dim: int, in_mpc: bool = True):
         super(DerivativeLearner, self).__init__()
         self.state_dim = state_dim
         self.input_dim = input_dim
@@ -32,8 +29,8 @@ class DerivativeLearner(L.LightningModule):
             self.state_dim,
             self.input_dim,
             activation = torch.nn.Tanh(),
-            in_mpc=False,
-            is_pinn=False,
+            predicts_state=False,
+            in_mpc=in_mpc,
             is_highway=False,
         )
         self.mse = torch.nn.MSELoss()

@@ -139,7 +139,7 @@ class Datamodule(ABC, L.LightningDataModule):
         print("DATA SAVED!")
 
     def load(self, path=None):
-        self.train_data = torch.load(open(os.path.join(path, "train_data.dat"), "rb"))
-        self.val_data = torch.load(open(os.path.join(path, "val_data.dat"), "rb"))
-        self.test_data = torch.load(open(os.path.join(path, "test_data.dat"), "rb"))
+        self.train_data = torch.load(open(os.path.join(path, "train_data.dat"), "rb"), weights_only=False)
+        self.val_data = torch.load(open(os.path.join(path, "val_data.dat"), "rb"), weights_only=False)
+        self.test_data = torch.load(open(os.path.join(path, "test_data.dat"), "rb"), weights_only=False)
         print("DATA LOADED!\n")
