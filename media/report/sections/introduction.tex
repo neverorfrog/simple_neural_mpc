@@ -1,0 +1,23 @@
+Model Predictive Control (MPC) has emerged as a powerful control strategy
+in robotics due to its ability to handle constraints and optimize system
+behavior over a prediction horizon. When combined with neural networks,
+which can learn complex system dynamics, it creates a promising framework
+for controlling nonlinear systems.
+
+This report presents the implementation and analysis of a Neural Model
+Predictive Control (NMPC) scheme applied to a unicycle robot model. The
+unicycle serves as an excellent first-test case due to its nonholonomic
+constraints and nonlinear dynamics, making it both challenging and
+representative of real-world robotic systems, but at the same time its 
+low complexity makes it ideal for testing without too many complications.
+
+Our approach integrates deep learning techniques to approximate the
+unicycle's dynamics, which are then utilized within an MPC framework to
+generate optimal control inputs. We explore the effectiveness of this
+method in trajectory tracking tasks, comparing it with traditional control
+approaches.
+
+The following sections detail the theoretical foundations, implementation
+specifics, and experimental results of our neural MPC system. We also
+discuss the challenges encountered and potential improvements for future
+work.

@@ -1,0 +1,143 @@
+The NMPC is developed using Acados, a software package that provides solvers for nonlinear optimal control.
+It is based on the symbolic framework CasADi, and provides a Python interface at an higher level.
+CasADI is a software framework for automatic differentiation, nonlinear optimization and 
+optimal control. It is implemented in C++ and has also a Python interface.\\
+The neural model has been developed using PyTorch, an open source deep learning library based on Python.\\
+The linking between the MPC and the neural model has been possible using the L4Casadi framework, which allows
+the integration of Pytorch-learned models within CasADI and Acados, and provides also an hardware acceleration
+for learned components.\\
+Acados was used for three main purposes:
+\begin{itemize}
+  \item Modeling
+  \item Simulation through numerical integration
+  \item Formulation and solving of optimization problems within MPC
+\end{itemize}
+The software of this project is based mainly on three components:
+\begin{description}
+    \item[Simulator] Matplotlib plot to show everything graphically in real-time. 
+    \item[Model] Expressed formally according to Acados syntax, the ODE is expressed in implicit form.
+    \item[Controller] Expressed as an Acados linear program, with a linear cost function and linear constraints; 
+                    it returns a single control action based on the current state and the predicted states for
+                    the whole horizon.
+\end{description}
+
+\subsection{Simulator}
+The main goal of the simulator is to visualize the reference trajectory that evolves in time,
+and to simulate the unicycle movement through the control inputs and integration of the model.
+The complete parametrized implementation of a simulation can be found at 
+\href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/simulation/trajectory_tracking.py}{trajectory\_tracking.py},
+which takes in input the interested robot (in our case the unicycle, but it can be extended to other robots),
+the used controller and the reference trajectory, and it generates the entire simulation loop. 
+The simulation loop is summarized in pseudocode \ref{sim}, where the whole cycle is encapsulated in the function 
+\begin{verbatim}
+    run(self, N, animate, save)
+\end{verbatim}
+which takes the total number of steps $N$, a boolean to express if the simulation must be visualized and animated 
+through a proper function \texttt{animate}, and another boolean if the animation video must be saved.
+The animation is guaranteed by \texttt{FuncAnimation} of Matplotlib. \\
+The trajectories the robot can track are defined inside 
+\href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/utils/trajectory.py}{trajectory.py}.
+A trajectory must contain a function \texttt{update(self, t)} which declares at time-step $t$
+its position, velocity, acceleration, orientation and angular velocity.  
+\begin{algorithm}[h]
+    \caption{Simulation Loop}\label{sim}
+    \begin{algorithmic}[1]
+        \State $dt \gets 0.05$ s \Comment{Time step}
+        \While{ number of steps is not exceeded }
+        \State measure car state $x$
+        \State action $a \gets command(x)$ \Comment{From MPC}
+        \State move forward for $dt$ under action $a$, updating state $x$
+        \State update plot and save state and action
+        \EndWhile
+    \end{algorithmic}\
+\end{algorithm}
+
+\subsection{Model}\label{AcadosModel} An important aspect is how the models
+are actually discretized. What happens is that, conceptually, the model is
+still expressed as a symbolic function through CasADI, as if it was a
+continuous function. Acados helps in doing this, providing an high level
+interface through the class \texttt{AcadosModel}. Instantiating an object
+of this class, we have to deliver it state, inputs and derivative of the
+state as CasADI symbolic variables, and also implicit or explicit ODE in
+the form of CasADI expression, according to the integrator type wants to be
+used. All these information are necessary to the class to automatically
+generate the CasADI function. The formulation of the real unicycle model
+according to Acados policy can be found in
+\href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/models/unicycle_kin/unicycle_kin_acados.py}{unicycle\_kin\_acados.py}.\\
+In the same way, the neural model of the robot is expressed through the \texttt{AcadosModel}.
+The only distinction lies in the expression of the explicit (or implicit) ODE, which recalls 
+the neural approximator thanks to \textbf{L4Casadi} \cite{l4casadi}. In fact, it is possible to create 
+an instance of the class \texttt{L4CasADi}, which takes in input the Pytorch tensor; 
+at this point the forward pass of the neural network can be executed, calling the L4CasADi 
+instance with the symbolic variables as inputs. In this way, a symbolic CasADi expression is returnes,
+representing the explicit dynamics of the system. The detailed formulation of the neural unicycle
+model can be found in 
+\href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/models/unicycle_kin/unicycle_kin_acados_neural.py}{unicycle\_kin\_acados\_neural.py}  
+
+\subsection{MPC}
+The implementation of the MPC for both real and neural unicycle models is
+the same, because it is enclosed inside a wrapper class called
+\texttt{ModelPredictiveController}. This class contains two methods:
+\begin{itemize}
+    \item \texttt{\_init\_ocp()}: initialize the optimization problem and its solver.\\ 
+            In Acados, the formulation of the optimization control problem
+            is done thorugh the class \texttt{AcadosOcp}, where the full
+            problem can be described, specifying the dimension of the
+            problem, the interested AcadosModel (see
+            \autoref{AcadosModel}), the cost function in matricial form,
+            the constraints, the type of solver to use, integrator type the
+            solver must use, and several other options. \\
+            Once the formulation is complete, an acados solver can be effectively created using the 
+            \texttt{AcadosOcpSolver} class. This is a communication bridge with the acados OCP solver in C
+            
+    \item \texttt{command(robot: Unicycle, reference: Trajectory)}: instantiate the optimization problem
+            in numerical form and solves it. 
+            It takes in input the robot model and the reference trajectory,
+            and returns the action to be applied, the next state, the reference position and the error
+            between the prediction and the baseline.
+            What happens inside this function in details: the solver allows to set numerical data inside 
+            the constraints and the cost function. Then, the built-in function in the solver 
+            \texttt{solve\_for\_x0(state)} is called, returning the best action can be applied in $state$.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Cost Weights} & \textbf{Value} \\
+        \hline
+        $e_x$ & 3 \\
+        $e_y$ & 3 \\
+        $e_\psi$ & 2 \\
+        $v$ & 1 \\
+        $w$ & 1 \\
+        $e_{x,\text{term}}$ & 5 \\
+        $e_{y,\text{term}}$ & 5 \\
+        $e_{\psi,\text{term}}$ & 3 \\
+        \hline
+    \end{tabular}
+    \caption{Cost Weights}
+    \label{tab:cost_weights}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Constraints} & \textbf{Value} \\
+        \hline
+        $x_{\text{min}}$ & -2 \\
+        $x_{\text{max}}$ & 2 \\
+        $y_{\text{min}}$ & -2 \\
+        $y_{\text{max}}$ & 2 \\
+        $\psi_{\text{min}}$ & -2 \\
+        $\psi_{\text{max}}$ & 2 \\
+        $v_{\text{min}}$ & -3 \\
+        $v_{\text{max}}$ & 3 \\
+        $w_{\text{min}}$ & -3 \\
+        $w_{\text{max}}$ & 3 \\
+        \hline
+    \end{tabular}
+    \caption{Constraints}
+    \label{tab:constraints}
+\end{table}

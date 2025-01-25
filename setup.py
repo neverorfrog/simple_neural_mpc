@@ -3,7 +3,16 @@ from setuptools import find_packages, setup
 setup(
     name="simple_neural_mpc",
     version="0.1.0",
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(
+        where="src",
+        include=[
+            "simple_neural_mpc",
+            "simple_neural_mpc.*",
+            "neural_model_identification",
+            "neural_model_identification.*",
+        ],
+    ),
     install_requires=[
         "casadi",
         "matplotlib",
@@ -12,6 +21,9 @@ setup(
         "pyyaml",
         "pyqt5",
         "scipy",
+        "torch",
+        "tqdm",
+        "scikit-build",
     ],
     author="Your Name",
     author_email="your.email@example.com",
