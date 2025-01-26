@@ -71,13 +71,6 @@ class TrajectoryTrackingSimulation:
             error_traj.append(error)
             elapsed.append(elapsed_time)
 
-            # print("---------------------------")
-            # print("STATE: ", state)
-            # print("ACTION: ", action)
-            # print("ERROR: ", error)
-            # print("--------------------------")
-            # print("\n\n\n")
-
             # update time
             self.t += config.dt
 
@@ -110,7 +103,8 @@ class TrajectoryTrackingSimulation:
         time = np.linspace(0, N * 0.01, N)
 
         # figure params
-        grid = GridSpec(3, 2, width_ratios=[2, 1])
+        fig = plt.figure(figsize=(9, 7))
+        grid = GridSpec(3, 2, width_ratios=[2, 1], figure=fig)
         ax_large = plt.subplot(grid[:, 0])
         ax_small1 = plt.subplot(grid[0, 1])
         ax_small2 = plt.subplot(grid[1, 1])

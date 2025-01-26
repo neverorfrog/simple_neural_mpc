@@ -21,6 +21,15 @@ def plot_wheeled_robot(axis: Axes, x: float, y: float, psi: float, num_wheels: i
     r = 0.2
     circle = plt.Circle(xy=(x, y), radius=r, facecolor="orange", alpha=0.5, lw=2)
     axis.add_patch(circle)
+    
+    # Draw forward direction tick
+    offset = 0.1
+    tick_length = 0.1
+    x_start = x + offset * cos(psi)
+    x_tick = x_start + tick_length * cos(psi)
+    y_start = y + offset * sin(psi)
+    y_tick = y_start + tick_length * sin(psi)
+    axis.plot([x_start, x_tick], [y_start, y_tick], color="red", lw=2)    
 
     # Draw two wheels as rectangles
     wheel_angle = wrap(psi - np.pi / 2)

@@ -7,12 +7,12 @@ import numpy as np
 class CostWeights:
     ex: float = 2
     ey: float = 2
-    epsi: float = 0.1
+    epsi: float = 2
     v: float = 0.5
     w: float = 0.1
-    ex_term: float = 3
-    ey_term: float = 3
-    epsi_term: float = 0.5
+    ex_term: float = 5
+    ey_term: float = 5
+    epsi_term: float = 5
 
 
 @dataclass
@@ -35,8 +35,8 @@ class MPCConfig:
     horizon: int = 100
     color: str = "red"
     model_name: str = "unicycle"
-    is_neural: bool = True
-    predicts_state: bool = True
-    is_pinn: bool = True
+    is_neural: bool = False
+    predicts_state: bool = False
+    is_pinn: bool = False
     cost_weights: CostWeights = field(default_factory=CostWeights)
     constraints: Constraints = field(default_factory=Constraints)
