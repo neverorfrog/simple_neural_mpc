@@ -1,3 +1,248 @@
-\todo[inline]{what we have obtained}
-\todo[inline]{problems}
-\todo[inline]{pinn vs pinnc}
+In this section we will report some results obtained by training the neural
+model and applying it to an MPC based trajectory tracking problem applied to the unicycle robot. 
+
+\subsection{Derivative Learning}
+
+In figure \ref{fig:derivative_loss} we can observe that the loss converges
+pretty quickly.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../../giuseppi/report/assets/val_loss_derivative.png}
+    \caption{Loss plot for the derivative prediction task}
+    \label{fig:derivative_loss}
+\end{figure}
+
+This reflects also in a successful evaluation on the test set, where
+predictions are very close to the nominal model, with very few exceptions.
+Also the integration in the MPC is successful, achieving nearly identical
+results to the nominal model. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_circle.png}
+        \caption{MPC tracking with learned model}
+        \label{fig:mpc_derivative_circle_1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_circle.png}
+        \caption{MPC tracking with nominal model}
+        \label{fig:mpc_derivative_circle_2}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_derivative_circle}
+\end{figure}
+
+In these plots, the MPC simulation has a discretization timestep of 50 ms,
+in order to make the neural-mpc controller feasible, since it has higher
+computational demands than the nominal model. The neural model is also
+potentially more scalable, since it can be trained on a variety of more
+complex models, while potentially keeping the same computational cost. The
+nominal model performs better in computational terms, but the neural model
+is potentially more robust to disturbances and model errors, especially if
+we were to inject noise in it during the training process. This
+discrepancy between computational performance is also imputable to the
+integration method used by the mpc solver in Acados. Indeed, the neural
+network that predicts the next state instead of the derivative will perform
+better inside the MPC.
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_zero.png}
+        \caption{Zero velocity testing with neural model}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_zero.png}
+        \caption{Zero velocity testing with nominal model}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_derivative_zero}
+\end{figure}
+
+In figure \ref{fig:mpc_derivative_zero} we can see that the neural model
+has some issues when the desired tracking velocity is zero. The neural mpc
+has a imperceptible drift, while the nominal model is, of course,
+completely still. This derives from the intrisic data-related nature of
+neural model, which can't captivate the differential equations profoundly.
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_dritto.png}
+        \caption{Straight line velocity testing with neural model}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_dritto.png}
+        \caption{Straight line velocity testing with nominal model}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_derivative_dritto}
+\end{figure}
+
+In figure \ref{fig:mpc_derivative_dritto} it is even clearer how the neural
+model actually perfectly mimicks the nominal model, having the same error
+profile.
+
+\subsection{Next State Learning}
+
+The loss for the state prediction task is depicted in figure
+\ref{fig:state_loss}. The trend is very similar to before.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../../giuseppi/report/assets/val_loss_state.png}
+    \caption{Loss plot for the state prediction task}
+    \label{fig:state_loss}
+\end{figure}
+
+Similarly to before, this reflects positively in the evaluation on the
+test, but there are some edge cases where predictions are not as accurate as
+before. This probably comes from the fact that we use Euler integration to
+propagate the nominal system dynamics. Or the cause could be also that the
+network is overfitting on the training data without any notion on the
+actual system dynamics. Thus, when seeing new unseen data, even if still in
+the same distribution, generalization capabilities are not excellent. We
+tried to mitigate this problem by adding some callbacks in the training
+loop that stop the training when the validation loss stops decreasing, but
+this low generalization power behavior remains.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../../giuseppi/report/assets/next_state_learner_drift.png}
+    \caption{Unsuccesful evaluation on a test sample}
+    \label{fig:edge_case}
+\end{figure}
+
+This poor generalization capabilities reflect also negatively on the MPC
+tracking task. In figure \ref{fig:mpc_state_circle} we can see that the
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_circle.png}
+        \caption{MPC tracking with state-learning model}
+        \label{fig:mpc_state_circle_1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_circle.png}
+        \caption{MPC tracking with derivative-learning model}
+        \label{fig:mpc_state_circle_2}
+    \end{subfigure}
+    \caption{State prediction evaluation on a circle}
+    \label{fig:mpc_state_circle}
+\end{figure}
+
+As we can see in the figure above, the state-predicting neural model has
+some issues to track the trajectory with high precision. The tracking error
+descends more slowly than with the derivative-predicting neural model, and
+the final error is slightly higher. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_zero.png}
+        \caption{Zero velocity testing with neural model}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_zero.png}
+        \caption{Zero velocity testing with nominal model}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_state_zero}
+\end{figure}
+
+Also the zero velocity testing is not as successful as with the derivative
+neural model, but interestingly, after a small initial drift, the unicycle
+goes back to its desired position and stays still, as desired.
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_dritto.png}
+        \caption{Straight line velocity testing with neural model}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_dritto.png}
+        \caption{Straight line velocity testing with nominal model}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_state_dritto}
+\end{figure}
+
+In figure \ref{fig:mpc_state_dritto} the slight drift is vividly visible,
+as we can see from the error curve, which does not descend monotically.
+
+
+\subsection{State Prediction with Physics Loss}
+
+Adding the physics loss makes the mpc tracking task slightly better, as we
+can see in figure \ref{fig:mpc_pinn_circle}. Even computational performance
+is slightly better, suggesting that the MPC solver struggled less than
+before to find good solutions. The error profile shows a steeper descent
+when the learner is augmented with the physics loss.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_pinn_circle.png}
+        \caption{MPC tracking with physics loss}
+        \label{fig:mpc_pinn_circle_1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_circle.png}
+        \caption{MPC tracking without physics loss}
+        \label{fig:mpc_pinn_circle_2}
+    \end{subfigure}
+    \caption{Pinn prediction evaluation}
+    \label{fig:mpc_pinn_circle}
+\end{figure}
+
+In figure \ref{fig:mpc_pinn_dritto} the difference is even more evident. On
+the left side, the neural model with physics loss is able to track the
+trajectory, with a monotonically descending error, while on the right side
+this is not the case.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_pinn_dritto.png}
+        \caption{Zero velocity testing with physics loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_dritto.png}
+        \caption{Stright line velocity testing without physics loss}
+    \end{subfigure}
+    \caption{Derivative prediction evaluation}
+    \label{fig:mpc_pinn_dritto}
+\end{figure}
