@@ -8,7 +8,7 @@ class DatasetConfig:
     name: str = "state"
     load_data: bool = True
     batch_size: int = 32
-    N_traj: int = 100_000  # number of trajectories in the dataset
+    N_traj: int = 100_000  # number of trajectories in the dataset 50224 (uav)
     len_traj: int = 20  # length of trajectory (number of steps)
     n_step_constant_input: int = 5  # number of steps with constant input
     delta_t_for_step: float = 0.005
@@ -32,4 +32,4 @@ class TrainerConfig:
 
 @dataclass
 class PinnConfig:
-    latent_dim: int = 128
+    latent_dim: int = 128 # 256 (uav)

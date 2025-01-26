@@ -34,6 +34,7 @@ class NextStateLearner(L.LightningModule):
             activation=torch.nn.Tanh(),
             in_mpc=in_mpc,
             is_highway=False,
+            # predicts_state=False, (uav)
         )
         self.mse = torch.nn.MSELoss()
 
