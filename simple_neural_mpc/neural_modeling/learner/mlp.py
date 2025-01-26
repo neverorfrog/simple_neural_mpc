@@ -34,6 +34,8 @@ class MLP(nn.Module):
             activation,
             torch.nn.Linear(config.latent_dim, config.latent_dim),
             activation,
+            # torch.nn.Linear(config.latent_dim, config.latent_dim), (uav)
+            # activation, (uav)
             torch.nn.Linear(config.latent_dim, self.nn_output_dim),
         )
 

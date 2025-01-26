@@ -20,7 +20,7 @@ class Trainer(L.Trainer):  # type: ignore[misc]
             monitor="val/loss",
             dirpath=config.ckpt_path,
             mode="min",
-            filename="unicycle.pth",
+            filename= "unicycle.pth", # "uav.pth",
         )
 
         early_stopping_callback = EarlyStopping(
@@ -34,6 +34,7 @@ class Trainer(L.Trainer):  # type: ignore[misc]
             max_epochs=config.max_epochs,
             callbacks=[self._checkpoint_callback, early_stopping_callback],
             logger=WandbLogger(),
+            accelerator='cpu', # avoid problems
         )
 
     def fit(self, model: L.LightningModule, datamodule: L.LightningDataModule) -> None:
