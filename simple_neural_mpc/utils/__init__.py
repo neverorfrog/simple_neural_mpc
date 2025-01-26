@@ -1,3 +1,3 @@
-from .misc import load_config, project_root, wrap
+from .misc import load_config, project_root
 
-__all__ = ["project_root", "load_config", "wrap"]
+__all__ = ["project_root", "load_config"]

@@ -4,60 +4,53 @@ import casadi as ca
 
 
 class Integrator(ABC):
-    def step(self, state, action, curvature, h):
-        return self.discrete_ode(state, action, curvature, h)
+    def step(self, state, action, h):
+        return self.discrete_ode(state, action, h)
 
     @property
     def discrete_ode(self):
         return self._discrete_ode  # redefined by subclass
 
+    @property
+    def f(self):
+        return self._f  # redefined by subclass
+
 
 class Euler(Integrator):
 
-    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
-        f = ca.Function("f", [state, action, curvature], [f])
-        k = f(state, action, curvature)
+    def __init__(self, state: ca.MX, action: ca.MX, f: ca.MX, h: ca.MX):
+        f = ca.Function("f", [state, action], [f])
+        k = f(state, action)
         x_next = state + h * k
         self._discrete_ode = ca.Function(
-            "f_discrete", [state, action, curvature, h], [x_next]
+            "f_discrete", [state, action, h], [x_next]
         ).expand()
+        self._f = f
 
 
 class RK4(Integrator):
 
-    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
-        f = ca.Function("f", [state, action, curvature], [f])
-        k_1 = f(state, action, curvature)
-        k_2 = f(state + 0.5 * h * k_1, action, curvature)
-        k_3 = f(state + 0.5 * h * k_2, action, curvature)
-        k_4 = f(state + h * k_3, action, curvature)
+    def __init__(self, state: ca.MX, action: ca.MX, f: ca.MX, h: ca.MX):
+        f = ca.Function("f", [state, action], [f])
+        k_1 = f(state, action)
+        k_2 = f(state + 0.5 * h * k_1, action)
+        k_3 = f(state + 0.5 * h * k_2, action)
+        k_4 = f(state + h * k_3, action)
         state_next = state + h * (1 / 6) * (k_1 + 2 * k_2 + 2 * k_3 + k_4)
         self._discrete_ode = ca.Function(
-            "f_discrete", [state, action, curvature, h], [state_next]
+            "f_discrete", [state, action, h], [state_next]
         ).expand()
+        self._f = f
 
 
 class RK2(Integrator):
 
-    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
-        f = ca.Function("f", [state, action, curvature], [f])
-        k_1 = f(state, action, curvature)
-        k_2 = f(state + 0.5 * h * k_1, action, curvature)
+    def __init__(self, state: ca.MX, action: ca.MX, f: ca.MX, h: ca.MX):
+        f = ca.Function("f", [state, action], [f])
+        k_1 = f(state, action)
+        k_2 = f(state + 0.5 * h * k_1, action)
         state_next = state + h * k_2
         self._discrete_ode = ca.Function(
-            "f_discrete", [state, action, curvature, h], [state_next]
+            "f_discrete", [state, action, h], [state_next]
         ).expand()
-
-
-class CVODESIntegrator:  # TODO DOES NOT WORK
-
-    def __init__(self, state: ca.MX, action: ca.MX, curvature: ca.MX, f: ca.MX, h: ca.MX):
-
-        f = ca.Function("f", [state, action, curvature], [f])
-        ode = {"x": state, "p": action, "ode": f}
-        t0 = 0.0
-        tf = 0.4
-        state_next = ca.integrator("F", "cvodes", ode, t0, tf)
-        self._discrete_ode = ca.Function(
-            "f_discrete", [state, action, curvature, h], [state_next]
-        )
+        self._f = f

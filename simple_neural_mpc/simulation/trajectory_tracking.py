@@ -4,14 +4,19 @@ from itertools import count, cycle
 
 import matplotlib.pyplot as plt
 import numpy as np
+from IPython.display import HTML, display
 from matplotlib.animation import FuncAnimation
-from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.gridspec import GridSpec
 
+from simple_neural_mpc.config import MPCConfig as config
 from simple_neural_mpc.controllers.controller import Controller
-from simple_neural_mpc.models.robot import Robot
+from simple_neural_mpc.robots.robot import Robot
+from simple_neural_mpc.simulation.trajectory import Trajectory
 from simple_neural_mpc.utils import project_root
-from simple_neural_mpc.utils.trajectory import Trajectory
+
+
+def display_animation_in_notebook(animation):
+    return HTML(animation.to_jshtml())
 
 
 class TrajectoryTrackingSimulation:
@@ -26,6 +31,7 @@ class TrajectoryTrackingSimulation:
         self.robot = robot
         self.controller = controller
         self.trajectory = trajectory
+        self.t = 0
 
     def run(self, N: int = None, animate: bool = True, save: bool = False):
 
@@ -35,6 +41,8 @@ class TrajectoryTrackingSimulation:
         ref_traj = []
         error_traj = []
         elapsed = []  # elapsed times
+
+        self.to_be_animated = animate
 
         # Initializing simulation
         state = state_traj[0]
@@ -49,7 +57,7 @@ class TrajectoryTrackingSimulation:
             # computing control signal
             start = time.time()
             action, state, ref, error = self.controller.command(
-                self.robot, self.trajectory
+                self.robot, self.trajectory, self.t
             )
             elapsed_time = time.time() - start
 
@@ -63,8 +71,17 @@ class TrajectoryTrackingSimulation:
             error_traj.append(error)
             elapsed.append(elapsed_time)
 
-        if animate:
-            self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
+            # print("---------------------------")
+            # print("STATE: ", state)
+            # print("ACTION: ", action)
+            # print("ERROR: ", error)
+            # print("--------------------------")
+            # print("\n\n\n")
+
+            # update time
+            self.t += config.dt
+
+        self.animate(state_traj, action_traj, ref_traj, error_traj, elapsed, save)
 
     def animate(
         self,
@@ -125,7 +142,7 @@ class TrajectoryTrackingSimulation:
                     f"Average computation time: {np.mean(elapsed[i-5:i])*1000:.2f} ms"
                 )
 
-            start = i - 20 if (i - 20 >= 0) else 0
+            start = 0
 
             ax_large.cla()
             ax_large.set_aspect("equal")
@@ -175,25 +192,27 @@ class TrajectoryTrackingSimulation:
             )
             ax_small3.legend()
 
-        animation = FuncAnimation(
-            fig=plt.gcf(),
-            func=update,
-            frames=N,
-            interval=0,
-            repeat=False,
-            repeat_delay=5000,
-        )
-        plt.ioff()  # interactive mode off
-        if save:
-            root = project_root()
-            os.makedirs(f"{root}/videos", exist_ok=True)
-            animation.save(
-                f"{root}/videos/{self.name}.gif",
-                writer="pillow",
-                fps=20,
-                dpi=180,
+        if self.to_be_animated:
+            animation = FuncAnimation(
+                fig=plt.gcf(),
+                func=update,
+                frames=N,
+                interval=100,
             )
-        plt.ion()  # interactive mode on
-        fig_manager: FigureManagerBase = plt.get_current_fig_manager()
-        fig_manager.window.showMaximized()
-        plt.show(block=True)
+            plt.ioff()  # interactive mode off
+            if save:
+                root = project_root()
+                os.makedirs(f"{root}/videos", exist_ok=True)
+                animation.save(
+                    f"{root}/videos/{self.name}.gif",
+                    writer="pillow",
+                    fps=20,
+                    dpi=180,
+                )
+            plt.ion()  # interactive mode on
+            display(display_animation_in_notebook(animation))
+            plt.show(block=True)
+
+        else:
+            update(N - 1)
+            plt.show()

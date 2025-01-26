@@ -4,3 +4,6 @@
 [submodule "external/l4casadi"]
 	path = external/l4casadi
 	url = https://github.com/Tim-Salzmann/l4casadi.git
+[submodule "external/l4acados"]
+	path = external/l4acados
+	url = https://github.com/IntelligentControlSystems/l4acados.git

@@ -3,30 +3,38 @@ __pycache__/
 *.egg-info
 
 # acados
+acados_generated_files/
 c_generated_code/
 acados_ocp.json
 _l4c_generated/
+
 # pixi environments
 .pixi
 *.egg-info
 
-.venv
-.vscode
-.idea
+data/
+trained_models/
+build/
 
-.DS_Store
+ckpt/
+wandb/
+lightning_logs/
 
 # latex
 *.aux
 *.log
-*.fls
 *.out
+*.toc
 *.bbl
 *.blg
-*.toc
-*.fdb_latexmk
+*.tdo
 *.synctex
 *.synctex.gz
-*.tdo
+*.fdb_latexmk
+*.fls 
 *.snm
 *.nav
+.vscode
+.idea
+
+.DS_Store

@@ -1,5 +1,0 @@
-dt: 0.05
-
-car:
-  m: 1000 # mass [kg]
-  l: 1    # distance between tires [m]

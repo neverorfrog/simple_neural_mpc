@@ -1,7 +1,6 @@
 import os
 from typing import Type, TypeVar
 
-import numpy as np
 import yaml
 from omegaconf import OmegaConf
 
@@ -10,8 +9,10 @@ def project_root() -> str:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     max_iterations = 100  # Set a limit for the number of iterations
     for _ in range(max_iterations):
-        if "requirements.txt" in os.listdir(current_dir) or "setup.py" in os.listdir(
-            current_dir
+        if (
+            "requirements.txt" in os.listdir(current_dir)
+            or "setup.py" in os.listdir(current_dir)
+            or "pyproject.toml" in os.listdir(current_dir)
         ):
             return current_dir
         current_dir = os.path.dirname(current_dir)
@@ -43,15 +44,3 @@ def load_config(file_path: str, config_class: Type[T]) -> T:
         except yaml.YAMLError as e:
             print(f"Error decoding YAML: {e}")
             return config_class()
-
-
-def wrap(angle):
-    """Wrap between -pi and pi"""
-    if angle < -np.pi:
-        w_angle = 2 * np.pi + angle
-    elif angle > np.pi:
-        w_angle = angle - 2 * np.pi
-    else:
-        w_angle = angle
-
-    return w_angle

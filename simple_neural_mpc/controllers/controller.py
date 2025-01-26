@@ -3,6 +3,8 @@ from typing import Tuple
 
 import numpy as np
 
+from simple_neural_mpc.robots.robot import Robot
+from simple_neural_mpc.simulation.trajectory import Trajectory
 from simple_neural_mpc.utils.fancy_vector import FancyVector
 
 
@@ -14,7 +16,7 @@ class Controller(ABC):
 
     @abstractmethod
     def command(
-        self, *args, **kwargs
+        self, robot: Robot, reference: Trajectory, t: float
     ) -> Tuple[FancyVector, FancyVector, np.ndarray, np.ndarray]:
         """Compute the control actions
         Returns:
