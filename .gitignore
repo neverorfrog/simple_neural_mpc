@@ -18,6 +18,10 @@ _l4c_generated/
 
 .DS_Store
 
+data
+wandb
+lightning_logs
+
 # latex
 *.aux
 *.log
