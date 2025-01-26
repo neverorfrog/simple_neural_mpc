@@ -64,14 +64,16 @@ used. All these information are necessary to the class to automatically
 generate the CasADI function. The formulation of the real unicycle model
 according to Acados policy can be found in
 \href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/models/unicycle_kin/unicycle_kin_acados.py}{unicycle\_kin\_acados.py}.\\
-In the same way, the neural model of the robot is expressed through the \texttt{AcadosModel}.
-The only distinction lies in the expression of the explicit (or implicit) ODE, which recalls 
-the neural approximator thanks to \textbf{L4Casadi} \cite{l4casadi}. In fact, it is possible to create 
-an instance of the class \texttt{L4CasADi}, which takes in input the Pytorch tensor; 
-at this point the forward pass of the neural network can be executed, calling the L4CasADi 
-instance with the symbolic variables as inputs. In this way, a symbolic CasADi expression is returnes,
-representing the explicit dynamics of the system. The detailed formulation of the neural unicycle
-model can be found in 
+In the same way, the neural model of the robot is expressed through the
+\texttt{AcadosModel}. The only distinction lies in the expression of the
+explicit (or implicit) ODE, which recalls the neural approximator thanks to
+\textbf{L4Casadi} \cite{l4casadi}. In fact, it is possible to create an
+instance of the class \texttt{L4CasADi}, which takes in input the Pytorch
+tensor; at this point the forward pass of the neural network can be
+executed, calling the L4CasADi instance with the symbolic variables as
+inputs. In this way, a symbolic CasADi expression is returnes, representing
+the explicit dynamics of the system. The detailed formulation of the neural
+unicycle model can be found in 
 \href{https://github.com/neverorfrog/simple_neural_mpc/blob/mlp-tests/src/simple_neural_mpc/models/unicycle_kin/unicycle_kin_acados_neural.py}{unicycle\_kin\_acados\_neural.py}  
 
 \subsection{MPC}
@@ -90,14 +92,16 @@ the same, because it is enclosed inside a wrapper class called
             Once the formulation is complete, an acados solver can be effectively created using the 
             \texttt{AcadosOcpSolver} class. This is a communication bridge with the acados OCP solver in C
             
-    \item \texttt{command(robot: Unicycle, reference: Trajectory)}: instantiate the optimization problem
-            in numerical form and solves it. 
-            It takes in input the robot model and the reference trajectory,
-            and returns the action to be applied, the next state, the reference position and the error
-            between the prediction and the baseline.
-            What happens inside this function in details: the solver allows to set numerical data inside 
-            the constraints and the cost function. Then, the built-in function in the solver 
-            \texttt{solve\_for\_x0(state)} is called, returning the best action can be applied in $state$.
+    \item \texttt{command(robot: Unicycle, reference: Trajectory)}:
+            instantiate the optimization problem in numerical form and
+            solves it. It takes in input the robot model and the reference
+            trajectory, and returns the action to be applied, the next
+            state, the reference position and the error between the
+            prediction and the baseline. What happens inside this function
+            in details: the solver allows to set numerical data inside the
+            constraints and the cost function. Then, the built-in function
+            in the solver \texttt{solve\_for\_x0(state)} is called,
+            returning the best action can be applied in $state$.
 \end{itemize}
 
 \begin{table}[H]
@@ -106,14 +110,14 @@ the same, because it is enclosed inside a wrapper class called
         \hline
         \textbf{Cost Weights} & \textbf{Value} \\
         \hline
-        $e_x$ & 3 \\
-        $e_y$ & 3 \\
-        $e_\psi$ & 2 \\
-        $v$ & 1 \\
-        $w$ & 1 \\
-        $e_{x,\text{term}}$ & 5 \\
-        $e_{y,\text{term}}$ & 5 \\
-        $e_{\psi,\text{term}}$ & 3 \\
+        $e_x$ & 2 \\
+        $e_y$ & 2 \\
+        $e_\psi$ & 0.1 \\
+        $v$ & 0.5 \\
+        $w$ & 0.1 \\
+        $e_{x,\text{term}}$ & 3 \\
+        $e_{y,\text{term}}$ & 3 \\
+        $e_{\psi,\text{term}}$ & 0.5 \\
         \hline
     \end{tabular}
     \caption{Cost Weights}
@@ -126,16 +130,16 @@ the same, because it is enclosed inside a wrapper class called
         \hline
         \textbf{Constraints} & \textbf{Value} \\
         \hline
-        $x_{\text{min}}$ & -2 \\
-        $x_{\text{max}}$ & 2 \\
-        $y_{\text{min}}$ & -2 \\
-        $y_{\text{max}}$ & 2 \\
-        $\psi_{\text{min}}$ & -2 \\
-        $\psi_{\text{max}}$ & 2 \\
-        $v_{\text{min}}$ & -3 \\
-        $v_{\text{max}}$ & 3 \\
-        $w_{\text{min}}$ & -3 \\
-        $w_{\text{max}}$ & 3 \\
+        $x_{\text{min}}$ & -5 \\
+        $x_{\text{max}}$ & 5 \\
+        $y_{\text{min}}$ & -5 \\
+        $y_{\text{max}}$ & 5 \\
+        $\psi_{\text{min}}$ & -10 \\
+        $\psi_{\text{max}}$ & 10 \\
+        $v_{\text{min}}$ & -5 \\
+        $v_{\text{max}}$ & 5 \\
+        $w_{\text{min}}$ & -4 \\
+        $w_{\text{max}}$ & 4 \\
         \hline
     \end{tabular}
     \caption{Constraints}
