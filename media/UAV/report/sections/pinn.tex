@@ -13,9 +13,9 @@ This approach should be able to generalize outside the training data, fully resp
 With outside training data, we intend to say that the model generalize for sample that has never been shown \textbf{inside} the range of training. 
 \\ 
 
-The main loss component of the Pinn is call Physcis Loss, and minimize the discrepancy between the dynamics of the system and the derivative of the network iteself. 
+The main loss component of the Pinn is call Physics Loss, and minimize the discrepancy between the dynamics of the system and the derivative of the network iteself. 
 
-The classica Pinn models takes in input just the time $t$ at which we want to predict the evolution of the system. So, the output of the model is define as $x(t)$.
+The standard PiNN models takes in input just the time $t$ at which we want to predict the evolution of the system. So, the output of the model is define as $x(t)$.
 For impose particular constrapngints, other losses are taken into account. Example of such loss are the so call \textit{Boundary loss} and the \textit{Initial loss}. 
 The first one is used to impose the boundary condition of the system, while the second one is used to impose the initial condition of the system.
 \\
@@ -24,7 +24,7 @@ One limitation of such approach is that the model is not able to generalize to d
 Also, as few works have shown, the classica formulation of the Pinn is not stable over long time interval. 
 Finally, the standard pinn model is not able to include the control input into the dynamics. 
 
-For this reason, we have used a extended version of the framework, namely, the Pinn-C (\textit{Pinn with control} \cite{Antonelo_2024}).
+For this reason, we have used a extended version of the framework, namely, the PiNN-C (\textit{PiNN with control} \cite{Antonelo_2024}).
 Such works shown as incorporate the control input on the prediction scheme, and has became the de-facto standard for model non-autonomus dynamic evolution (\cite{pinn-manipulators} \cite{ramp-net}).
 The Pinn-C model is analyze in the next section of this report.
 
@@ -63,6 +63,7 @@ For this reason, we have decided to generate a new dataset, where the control in
 we have generated 8 different combination for the Unicycle:
 \begin{multicols}{2}
     \begin{itemize}
+        \centering
         \item $v > 0, w > 0$
         \item $v > 0, w < 0$
         \item $v < 0, w > 0$
@@ -72,14 +73,13 @@ we have generated 8 different combination for the Unicycle:
         \item $v = 0, w > 0$
         \item $v = 0, w < 0$
     \end{itemize}
-    
 \end{multicols}
 
-The last possible combination, $v = 0, w = 0$, has been excluded from the dataset, as we model a extra loss term that rely on sampling.
-The dataset has been generated using a Runge-Kutta 4th order method, and the sub-interval has been set to $0.1$ seconds. For approximate the real evolution of the system, 
-the pinn-c framework need different sample in which the input is constant. For this reason, after having discretize the input signal, we have taken up to 10 sub-evolution, leading to a reading of the trajectory of $0.02$ seconds.
+The last possible combination, $v = 0, w = 0$, has been excluded from the dataset, as we model a extra loss term that relies on sampling.
+The dataset has been generated using a Runge-Kutta 4th order method, and the sub-interval has been set to $0.1$ seconds. In order to approximate the real evolution of the system, 
+the PiNN-C framework needs different sample in which the input is constant. For this reason, after having discretize the input signal, we have taken up to 10 sub-evolution, leading to a reading of the trajectory of $0.02$ seconds.
 
-Under this assumption and constraint, we have seen that the previously mentioned phenomena are no longer present or at least has been minimize under a significant threshoold.
+Under this assumption and constraint, we have seen that the previously mentioned phenomena are no longer present or at least has been minimized under a significant threshold.
 
 \subsubsection{Loss definition and training scheme}
 
@@ -91,18 +91,18 @@ The overall loss function $\mathcal{L}$ used is composed by the sum of two main 
 The first term defines the discrepancy between the prediction of the network and the observed data, while the second one specifies the correct modeling of the differential equation.
 Usually $\mathcal{L}_{data}$ is define as the mean squared error between the prediction and the ground truth, while $\mathcal{L}_{phy}$ is defined using the residual of the differential equation.
 
-For a correct implemnetation of the Physics loss, a sampling strategy is required. The usage of the physics loss can be seen as a self-supervised learning instance, due the fact that do not rely on any dataset.
+For a correct implementation of the physics loss, a sampling strategy is required. The usage of the physics loss can be seen as a self-supervised learning instance, due the fact that does not rely on any dataset.
 
-At each iteration, the learner must sample a set of initial state, input and time from the relative distribution. Such sample are call "particle". 
+At each iteration, the learner must sample a set of initial states, input and time from the relative distribution. Such samples are called "particles". 
 A great number of sampled particle is important for a correct evaluation of the loss function, as reported in the self-supervised learning literature. 
-For such particle, we don't rely on the prediction of the network, but only on the gradient respect the input. Thanks to automatic differentiation, the gradient of the network can be easily calculated.
+For such particle, we don't rely on the prediction of the network, but only on the gradient with respect to the input. Thanks to automatic differentiation, the gradient of the network can be easily calculated.
 
 After having obtained the gradient, we can also calculate the output of the differential equation, and then calculate the loss term:
 \begin{equation}
     \mathcal L(\theta)_{physics} = \frac{1}{N} \sum_{i=1}^{N} (\nabla_{x} -  \textit{ode}(x, u, t) )^2
 \end{equation}
-In the previous equation, \textit{ode} is the differential equation that we are try to learn as underlying prior, while $\nabla_(X)$ represent the gradient of the network respect the input state.
-The \textit{ode} function is the same differential equation that we have introduced in the first part, and describe the evolution of our target systems.
+In the previous equation, \textit{ode} is the differential equation that we are interested to learn as underlying prior, while $\nabla_(X)$ represents the gradient of the network with respect to the input state.
+The \textit{ode} function is the same differential equation that we have introduced in the first part, and describes the evolution of our target systems.
 \\
 
 An extra term has been added, as a new boundary condition. When the model has 0 input, the network must became an identity function, returning the same input state as output. 

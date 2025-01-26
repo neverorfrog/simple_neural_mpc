@@ -1,19 +1,14 @@
 The model must be well-defined to be used in NMPC, in such a way 
 to obtain reliable predictions of system behavior in response to various control actions.
-The usage of a data-driven approach, such as neural networks, in the vehicle modeling phase has the
-advantage of not modeling all the nonlinear physical effects, which can be also very complex.
-In fact, neural networks have the capability to accurately model them. 
 Neural networks are universal approximators, and they can be used both for designing 
 the entire dynamic model of a system and approximating the disturbances and noises 
 a system can be affected.
-Our purpose is to approximate the entire kinematic model of a quadrotor with a neural model, by first testing the performances on a unicycle model due to its low complexity. 
-In this section we will start describing briefly the kinematic model of a unicycle, and then 
-we will describe the neural architecture used to approximate it.
+Our purpose is to approximate the entire dynami model of a quadrotor with a neural model, by first testing the performances on a unicycle model due to its low complexity. 
+In this section we will start describing the used architecture used 
 
 \subsubsection{Architecture}
-The general architecture of the networks is a MLP with as input the state of the system, the input and (in the PINN models) the time stamp.
-We tested the proposed approach with a various number of hidden layers and neurons, keeping the dimension of the network reasonably small 
-for enanche the possibility the on-board computer of the Quadrotor.
+The general architecture of the networks is a MLP that takes as input the state of the system, the input and (in the PINN models) the time stamp.
+We tested the proposed approach with a various number of hidden layers and neurons, keeping the dimension of the network reasonably small for enhancing the possibility to use the on-board computer of the Quadrotor.
 \\
 
 In the standard neural network, a smaller number of neurons was sufficient for exploit the dynamics, while the PINN framework required a larger number of neurons for smooth 
