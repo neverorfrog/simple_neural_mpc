@@ -44,7 +44,7 @@ potentially more scalable, since it can be trained on a variety of more
 complex models, while potentially keeping the same computational cost. The
 nominal model performs better in computational terms, but the neural model
 is potentially more robust to disturbances and model errors, especially if
-we were to inject noise in it during the training process.n This
+we were to inject noise in it during the training process. This
 discrepancy between computational performance is also imputable to the
 integration method used by the mpc solver in Acados. Indeed, the neural
 network that predicts the next state instead of the derivative will perform
@@ -128,7 +128,7 @@ this low generalization power behavior remains.
 \end{figure}
 
 This poor generalization capabilities reflect also negatively on the MPC
-tracking task. In figure \ref{fig:mpc_state_circle} we can see that the
+tracking task.
 
 
 \begin{figure}[H]
@@ -150,7 +150,7 @@ tracking task. In figure \ref{fig:mpc_state_circle} we can see that the
     \label{fig:mpc_state_circle}
 \end{figure}
 
-As we can see in the figure above, the state-predicting neural model has
+As we can see in figure \ref{fig:mpc_state_circle}, the state-predicting neural model has
 some issues to track the trajectory with high precision. The tracking error
 descends more slowly than with the derivative-predicting neural model, and
 the final error is slightly higher. 
