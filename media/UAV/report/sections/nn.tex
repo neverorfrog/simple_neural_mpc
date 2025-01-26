@@ -3,7 +3,7 @@ to obtain reliable predictions of system behavior in response to various control
 Neural networks are universal approximators, and they can be used both for designing 
 the entire dynamic model of a system and approximating the disturbances and noises 
 a system can be affected.
-Our purpose is to approximate the entire dynami model of a quadrotor with a neural model, by first testing the performances on a unicycle model due to its low complexity. 
+Our purpose is to approximate the entire dynamic model of a quadrotor with a neural model, by first testing the performances on a unicycle model due to its low complexity. 
 In this section we will start describing the used architecture used 
 
 \subsubsection{Architecture}
@@ -44,16 +44,6 @@ For doing so, we used a min-max normalization over the input, but we can also in
 
 We prefered to use the layer norm in our experiment because such module do not require a preprocessing at inference time, before invoke the MPC framework.
 However, the normalization layer is still trained over the dataset, limiting the capacity of the network over range outside the training one. 
-
-\subsubsection{Unicycle}
-In the application of the first approach over the unicycle model, the network was trained with 2 hidden state and a latent dimension of 128. 
-The input was the concatenation of the state $x \in R^3$ and the action $u \in R^2$, while the output was the state derivative $\dot x \in R^3$.
-
-\subsubsection{Quadrotor}
-The quadrotor dynamic present a more complex model, with a state $x \in R^9$ and an action $u \in R^4$. For approximate such dynamic with the defined training scheme, 
-a larger network as been tested: we increase the number of hidden layers up to 4. We have also tested the network with a latent dimension of 256, but the results were not competitive. 
-In particular, considering the training time and the computational power required for the inference, we prefered to keep the same latent dimension of the unicycle network.
-
 
 \subsection{Unicycle Neural model}
 \todo[inline]{Aggiungere figura MLP}
@@ -108,3 +98,15 @@ Ended this mechanism, the loss is computed as the mean-squared error between the
 
 
 \subsection{Quadrotor Neural model}
+\subsubsection{Architecture}
+The quadrotor dynamics presents a more complex model, with a state $x \in R^9$ and control inputs $u \in R^4$. For approximating such dynamics with the defined training scheme, 
+a larger network has been tested: we increase the number of hidden layers up to 3 and the latent dimension from 128 to 256.
+\subsubsection{Dataset}
+Since our quadrotor implementation is based on the Crazyflie, we have generated data according to the first order model used in the MPC formulation (\ref{eq:uav_first_order}). The data have been extracted from ROS messages given directly by the robot and the simulation. We have defined 19 different types of trajectories that belong to 3 main categories:
+\begin{itemize}
+    \item horizontal\_circle
+    \item vertical\_circle 
+    \item lemniscate
+\end{itemize} 
+\todo[inline]{image of trajectories}
+\todo[inline]{dataset problem}
