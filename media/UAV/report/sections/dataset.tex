@@ -7,7 +7,7 @@ input at time $t$ and $x_{t+1}$ is the state of the system at time $t+1$.
 
 For the baseline (\textit{simple-neural-network}), no constraints on the
 dataset form are required, while on the physics informed models specific
-requirements are needed. In order to apply the Pinn framework with control,
+requirements are needed. In order to apply the PiNN framework with control,
 \cite{Antonelo_2024} has shown that the input needs to be constant in a
 sub-interval $[0, T]$. This assumption brings us to generate several
 trajectories with this specific constraint, and also limits the possibility
@@ -29,3 +29,5 @@ would have made the use of the real crazyflie impossible. These problems
 could be partially mitigated by using the gazebo simulator and setting
 ad-hoc publishing rates, or forcing the input to be constant (introducing a
 noisy approximation) for a certain amount of time in the real-world data. \\
+
+\todo[inline]{foto dataset ?}
