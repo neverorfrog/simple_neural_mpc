@@ -229,6 +229,47 @@ In figure \ref{fig:mpc_pinn_dritto} the difference is even more evident. On
 the left side, the neural model with physics loss is able to track the
 trajectory, with a monotonically descending error, while on the right side
 this is not the case.
+In figure \ref{fig:train_vs_test_pinn_uni} we can see the training and test loss for the imit component, while on
+the figure \ref{fig:tot_loss_pinn_uni} we can see the effect of the single component of the loss.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../assets/pinn_test_Vs_train_unicycle.jpg}
+        \caption{test and train loss for the imit component}
+        \label{fig:train_vs_test_pinn_uni}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../assets/pinn_tot_loss_unicycle.jpg}
+        \caption{train loss for the pinn-c model}
+        \label{fig:tot_loss_pinn_uni}
+    \end{subfigure}
+    \caption{Pinn loss evaluation, unicycle}
+    \label{fig:pinn_unicycle_losses}
+\end{figure}
+
+In comparison, we can also see the loss plot for the quadrotor model (figure: \ref{fig:pinn_drone_losses}). We can see that the loss are noise, and the reached value is several order of magnitude bigger than the unicycle model:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../assets/pinn_loss_drone_imit.jpg}
+        \caption{test and train loss for the imit component of the Quadroto}
+        \label{fig:train_vs_test_pinn_drone}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../assets/pinn_loss_drone_physics.jpg}
+        \caption{physics loss of the pinn-c model for the Quadrotor}
+        \label{fig:physics_loss_drone}
+    \end{subfigure}
+    \caption{Pinn loss evaluation, quadrotor}
+    \label{fig:pinn_drone_losses}
+\end{figure}
 
 \begin{figure}[H]
     \centering
