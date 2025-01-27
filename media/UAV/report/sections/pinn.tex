@@ -112,19 +112,21 @@ This approach result in a less robust model, due the fact that the network only 
 
 As in the physical loss, the input vector has been sampled in the correct range, then we manually zero the input element. 
 
-\todo[inline]{pipeline (prendi foto paper manipulator)}
-
-
 \begin{algorithm}
-    \caption{Pseudocode Representation}
+    \caption{Training Procedure}
     \begin{algorithmic}[1]
-    \State $\hat{y} \gets \text{model}(X_{\text{data}})$
-    \State $L \gets L + \text{mse}(y, \hat{y})$
-    \State Sample $X$
-    \State Calculate gradient $J$
-    \State Calculate analytical $\text{ode}(X)$
-    \State $L \gets L + \text{\textbackslash equation}$
-    \State Sample point $X$
-    \State Zero the input
+        \State \textbf{Input:} \( X_{\text{data}}, y \)
+        \State \textbf{Initialize:} \( L \gets 0 \)
+        
+        \State \textbf{Compute Predictions:} \( \hat{y} \gets \mathcal{M}(X_{\text{data}}) \)
+        \State \textbf{Update Loss with MSE:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \)
+        \State \textbf{Sample Input Data:} \( X \sim \mathcal{D} \)
+        \State \textbf{Calculate Gradient:} \( J \gets \nabla L \)
+        \State \textbf{Compute Analytical ODE:} \( \text{ode}(X) = f(X) \)
+        \State \textbf{Update Loss with ODE Term:} \( L \gets L + \text{ode}(X) \)
+        \State \textbf{Sample a Point:} \( X_{\text{point}} \sim \mathcal{D} \)
+        \State \textbf{Zero the Input:} \( X \gets 0 \)
+        
+        \State \textbf{Output:} Updated loss \( L \)
     \end{algorithmic}
-    \end{algorithm}
+\end{algorithm}

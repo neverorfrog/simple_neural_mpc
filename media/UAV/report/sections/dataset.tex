@@ -14,6 +14,13 @@ trajectories with this specific constraint, and also limits the possibility
 of application on the data obtained in the real-world experiment. More
 details about this constraint are explored in the Pinn-section. \\
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{assets/final_train/data_uni.jpg}
+    \caption{Example of the generated data for the unicycle}
+    \label{fig:data_uni}
+  \end{figure}
+
 All the sintetic data has been obtained by integrating the system dynamics
 with a Runge-kutta 4th order method, while the real-world data has been
 extrapolated using the ROS interface of the quadrotor.
@@ -28,4 +35,4 @@ high, but it couldn't be too high, for communication latency reasons, which
 would have made the use of the real crazyflie impossible. These problems
 could be partially mitigated by using the gazebo simulator and setting
 ad-hoc publishing rates, or forcing the input to be constant (introducing a
-noisy approximation) for a certain amount of time in the real-world data. \\
+noisy approximation) for a certain amount of time in the real-world data.
