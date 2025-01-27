@@ -1,17 +1,50 @@
 In this project we wanted to explore the possibility to integrate
 Pytorch-learned models within CasADI and Acados to provide a learning based
 model predictive controller. This approach allows to exploit the vast
-adaptability of neural networks while
-exerting some control over the system through MPC, which allows to impose
-constraints. We have shown that this approach is feasible, while presenting
-also some limitations. By far, the main limitation is given by the
+adaptability of neural networks while exerting some control over the system through MPC, which allows to impose
+constraints.
+We have shown that this approach is feasible, while presenting
+also some limitations. 
+By far, the main limitation is given by the
 intrinsic nature of neural networks, which don't take into account the
 actual physical meaning of the equations governing the dyanmical system.
+
+
 This can be partially solved by using a physics-informed neural network,
-which we did for the unicycle. Another problem is given by how the neural
+which we did for the unicycle. While the neural approach shows primomised results, in leveraging internal disturbances and improving controller accuracy,
+the standard MPC framework retains advantages in scenarios with limited or incomplete data distributions. 
+Moreover, the dimensionality challenge — where increasing the state/input space dimensions necessitates exponentially more sampled points — remains a significant hurdle.
+
+Despite these challenges, the results underscore the potential of physics-informed models to address complex control problems.
+These models offer a unique capacity to incorporate domain-specific knowledge, paving the way for improved adaptability and robustness in controller design. 
+However, the development of more specialized and robust constraints is essential to maximize their applicability and ensure consistent performance across diverse scenarios. 
+
+
+Another problem is given by how the neural
 network is integrated within the MPC. The optimization problem has its own
 computational graph, and the neural network has its own too, so these two
-graphs need to be merged. This problem was solved by using L4Casadi. Of
-course, this is just an exploratory project and many problems remain to be
+graphs need to be merged. This problem was solved by using L4Casadi. 
+
+Of course, this is just an exploratory project and many problems remain to be
 solved.
-\todo[inline]{uav part}
+
+
+\subsection{Future Works}
+
+We are confident that the physics informed model must be a future direction for the research, while better and more general for 
+of constraint could be implemented.
+Other option for future improvement are the combination of dynamic systems and neural models, in order to predict more stable evolution over undefined range.
+An example of such integration could be the usage of reservoir computing: few works has been demostrate that such approach
+can be used for deal with unbalance and non-homogeneous input signal, while the output layers can be tuned in a physics informed fashion.
+
+Other problems and consideration are related to the sim2real transfer:
+Considering the single basin hypothesis, a double stage training mechanism could be used for linearly connect multiple models. 
+Keeping as fixed the model obtained in nominal condition, and interpolate other network trained on different dataset, must results in a upgrade of the 
+main model. Our conjecture is that the pinn could constraint the network to have single basin, that is the gloabl minima for the main model, while 
+other models trained on noisy dataset could contribute for reach a more general solution.
+
+Also, a moving average technique in the training phase could be beneficial for the convergence of the network.
+Future works are requied for integrate the Neural-MPC framework into real world application. 
+
+We hope that this project can offfer a comprenshive overview of the challenge and possibility for future step, as all the challenge incounter during the development 
+are current state of the art research problems. 

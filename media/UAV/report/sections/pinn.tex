@@ -113,7 +113,7 @@ This approach result in a less robust model, due the fact that the network only 
 As in the physical loss, the input vector has been sampled in the correct range, then we manually zero the input element. 
 
 \begin{algorithm}
-    \caption{Training Procedure}
+    \caption{Training Loop: Loss calculation}
     \begin{algorithmic}[1]
         \State \textbf{Input:} \( X_{\text{data}}, y \)
         \State \textbf{Initialize:} \( L \gets 0 \)
@@ -121,11 +121,12 @@ As in the physical loss, the input vector has been sampled in the correct range,
         \State \textbf{Compute Predictions:} \( \hat{y} \gets \mathcal{M}(X_{\text{data}}) \)
         \State \textbf{Update Loss with MSE:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \)
         \State \textbf{Sample Input Data:} \( X \sim \mathcal{D} \)
-        \State \textbf{Calculate Gradient:} \( J \gets \nabla L \)
+        \State \textbf{Calculate Gradient:} \( J \gets \nabla_X \theta \)
         \State \textbf{Compute Analytical ODE:} \( \text{ode}(X) = f(X) \)
-        \State \textbf{Update Loss with ODE Term:} \( L \gets L + \text{ode}(X) \)
+        \State \textbf{Update Loss with ODE Term:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n}(\text{ode}(X) - \nabla_X \theta)^2 \)
         \State \textbf{Sample a Point:} \( X_{\text{point}} \sim \mathcal{D} \)
-        \State \textbf{Zero the Input:} \( X \gets 0 \)
+        \State \textbf{Zero the Input:} \( X_{\text{input}} \gets 0 \)
+        \State \textbf{Update Loss with Boundary Term:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} (X_i - \hat{y}_i)^2 \)
         
         \State \textbf{Output:} Updated loss \( L \)
     \end{algorithmic}
