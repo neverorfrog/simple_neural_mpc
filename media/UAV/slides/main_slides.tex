@@ -17,14 +17,45 @@
 \begin{frame}{Neural Model Predictive Control (NMPC)}
     In this work we have tried to combine Model Predictive Control along with PiNNs to trajectory tracking problem applied to quadrotors. We have used the Unicycle robot as simple test case for our experiments.
 \end{frame}
-\section{Robot Models}
+\section{Quadrotor Model}
 
-\begin{frame}{Quadorotor}
+\begin{frame}{Quadrotor Standard Model}
+    \begin{columns}[T] % Align columns at the top
+        % Left Column: Text
+        \begin{column}{0.45\textwidth}
+            \vspace{0.4cm}
+            Starting from the Translational \eqref{eq:tra_dyn} and Rotational Dynamics \eqref{eq:rot_dyn}, we have derived the simplified second order of the quadrotor.
+            \begin{align}
+                \label{eq:tra_dyn}
+                m \ddot{p} = f_{t} + f_{g} + f_{a} + f_{d} \\
+                \label{eq:rot_dyn}
+                J \ \dot{\omega} + \omega \times (J \ \omega) = \tau 
+            \end{align}
+        \end{column}
+        
+        % Right Column: Equation
+        \begin{column}{0.50\textwidth}
+            \vspace{-0.2cm}
+            \begin{align}
+                \begin{cases}
+                    \ddot{x} = -\Bigl(\cos\psi\, \sin\theta\, \cos\phi + \sin\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
+                    \ddot{y} = -\Bigl(\sin\psi\, \sin\theta\, \cos\phi - \cos\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
+                    \ddot{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\
+                    \ddot{\phi}   = \frac{\tau_{\phi}}{I_{x}} \\
+                    \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}} \\
+                    \ddot{\psi}   = \frac{\tau_{\psi}}{I_{z}} 
+                \end{cases}
+            \end{align}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Crazyflie Model}
     \begin{columns}[T] % Align columns at the top
         % Left Column: Text
         \begin{column}{0.45\textwidth}
             \vspace{0.7cm}
-            Since we have used the Crazyflie robot as reference, we have used a first order model because the robot takes as control inputs RPY desired poses rather than torques. This means that the output of the MPC gives us the RPY desired poses while the ODE model gives us the velocity commands.
+            Since we have used the Crazyflie as reference, the reference model is different with respect to the previous one. This is a consequence of how the firmware of the robot acts. There is a low level attitude controller that takes as inputs the RPY desired poses and maps them as control torques.
         \end{column}
         
         % Right Column: Equation
@@ -48,24 +79,60 @@
 \end{frame}
 
 \section{Model Predictive Control}
-\begin{frame}{Model Predictive Control}
-    This approach leads to good result for both the drone and unicycle models.
+\begin{frame}{MPC Structure}
+    We have used for both robots the following structure for the MPC:
     \begin{align}
         \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
         \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
         & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
-        & x(0) = x_{\text{0}}
+        & x(0) = x_{\text{0}.}
     \end{align}
 \end{frame}
-\begin{frame}{Crazy-MPC}
-    Our objective is to minimize at each step the error with respect to the reference
-    trajectory, while also maintaining the module of the input actions as low as possible.
-    \begin{itemize}
-        \item The \textbf{decision variables} are $(\phi_{c},\theta_{c},\psi_{c}, T)$ and the state of the robot
-        \item The \textbf{constraints} are related only to the decision variables
-        \item The cost function minimizes the distance between the state of the quadrotor and the reference trajectory at time $t_{k}$
-    \end{itemize}
-\end{frame}
+
+
+\begin{frame}{MPC Cost Function}
+    % MPC Cost Function Block
+    \begin{block}{Cost Function}
+      \centering
+      \vspace{-1em} % Adjust this value as needed to reduce extra vertical space
+      \begin{align*}
+        \ell(x(k), u(k)) &= \sum_{k=0}^{N-1} \Bigl[  \sum_{x \in \mathcal{X}} W_{x(k)} \Bigl( x(k)_{\text{ref}} - x(k) \Bigr)^2 
+        + \sum_{u \in \mathcal{U}} W_u \, u^2 \Bigr], \\
+        \ell_{f}(x(N))      &= \sum_{x \in \mathcal{X}} W_{x(N)} \Bigl( x(N)_{\text{ref}} - x(N) \Bigr)^2 .
+      \end{align*}
+    \end{block}
+    
+    \vspace{-1em} % Adjust vertical spacing between blocks
+    
+    % Unicycle and Quadrotor Blocks aligned at top
+    \begin{columns}[t]
+      % Unicycle Block
+      \begin{column}{0.48\textwidth}
+        \begin{block}{Unicycle State \& Control}
+          \centering
+          \begin{equation*}
+            \begin{cases}
+              \mathcal{X} = \begin{bmatrix}x & y & \theta \end{bmatrix}^T,\\[1ex]
+              \mathcal{U} = \begin{bmatrix}v & \omega \end{bmatrix}^T.
+            \end{cases}
+          \end{equation*}
+        \end{block}
+      \end{column}
+      
+      % Quadrotor Block
+      \begin{column}{0.48\textwidth}
+        \begin{block}{Quadrotor State \& Control}
+          \centering
+          \begin{equation*}
+            \begin{cases}
+              \mathcal{X} = \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \end{bmatrix}^T,\\[1ex]
+              \mathcal{U} = \begin{bmatrix}\phi_c & \theta_c & \psi_c & T \end{bmatrix}^T.
+            \end{cases}
+          \end{equation*}
+        \end{block}
+      \end{column}
+    \end{columns}
+  \end{frame}
 
 \section{Neural Network}
 \begin{frame}{Simple MLP}
