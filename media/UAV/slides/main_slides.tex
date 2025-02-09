@@ -6,9 +6,7 @@
 \title{MPC-PiNNs technique applied to Quadrotors}
 \subtitle{Elective in Robotics [UAV] Course Project}
 \course{Master's Degree in Artificial Intelligence and Robotics} %%%
-\author{{Authors}} %%%
-
-\IDnumber{matricole} %%%
+\author{{Bugli Eugenio}, {Di Marzo Gabriele}, {Maiorana Flavio}} %%%
 \date{Academic Year 2024/2025}
 
 \begin{document}
@@ -169,25 +167,48 @@
     These problems could be \textbf{partially mitigated} by using the gazebo simulator and setting ad-hoc publishing rates, or forcing the input to be constant (introducing a noisy approximation) for a certain amount of time in the real-world data.
 \end{frame}
 \section{Neural Network}
-\begin{frame}{Simple MLP}
-    \begin{columns}[T] % align columns at the top
-        \begin{column}{0.50\textwidth}
-            The architecture is characterized by two hidden layers of 128 neurons and takes as input the current state and the action that I want to apply.
-            \vspace{1ex}
-            \begin{align}
-                \dot{x} &= f_{\theta}(x,u) \\
-                loss &= \frac{1}{k}\sum_{i=t}^{t+k} (\bar{s}_i - s_i)^2
-            \end{align}
-            The loss is computed as the MSE between the neural and the nominal evolutions of the state.
-        \end{column}
-        \begin{column}{0.4\textwidth}
-            \centering
-            % First image on top
-            \includegraphics[width=\textwidth]{../report/assets/mlp_1.jpg} % replace with 
-            \includegraphics[width=\textwidth]{../report/assets/mlp_2.jpg} % replace with your second image file
-            \footnotesize{Evolution Trajectory}
-        \end{column}
+\begin{frame}{Training Scheme}
+    \begin{columns}[c]
+      % Left Column: Text Description
+      \begin{column}{0.55\textwidth}
+        The multi-step training procedure is defined as follows:
+        \begin{itemize}
+          \item Give in input the pair $(s_t, a_t)$ to the network
+          \item Perform the integration of the output in the sample time $dt$
+          \item Add what we have to the input to obtain the new state $s_{t+1}$
+          \item Compute the \textbf{MSE} loss
+          \item Use the new state as the next input of the network
+        \end{itemize}
+      \end{column}
+      
+      % Right Column: Image
+      \begin{column}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../report/assets/mlp_1.jpg} % Replace with your image file
+      \end{column}
     \end{columns}
+  \end{frame}
+
+\begin{frame}{Unicycle Network}
+
+    The neural network used to model the kinematic model of the unicycle is a simple MLP architecture with two hidden layers of 128 neurons.
+    The input is given by the concatenation of the current state and the current control inputs:
+    \begin{equation}
+        X = [x, y, \theta, v, \omega]
+    \end{equation}
+    while the output represents the dynamics of the system:
+    \begin{equation}
+        Y = [\dot{x}, \dot{y}, \dot{\theta}]
+    \end{equation}
+\end{frame}
+
+\begin{frame}{Quadrotor Network}
+    The quadrotor dynamics presents a more complex model, with a state $x \in R^9$ and control inputs $u \in R^4$. For approximating such dynamics with the defined training scheme, a larger network has been tested: we have increased the number of hidden layers up to 3 and the latent dimension from 128 to 256. However, the main problem during training is related to the generation of the data.
+\begin{align}
+    X &= \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \ |\ U \end{bmatrix}^T \\
+    U &= \begin{bmatrix} \phi_c & \theta_c & \psi_c & T \end{bmatrix}^T \\
+    Y &= \begin{bmatrix} \dot{x} & \dot{y} & \dot{z} & \dot{v_x} & \dot{v_y} & \dot{v_z} & \dot{\phi} & \dot{\theta} & \dot{\psi} \end{bmatrix}^T
+\end{align}
 \end{frame}
 
 \section{Physical Informed Neural Networks}
@@ -289,5 +310,5 @@ The system has been integrated with Euler or Runge-Kutta 4.
         \end{column}
     \end{columns}
 \end{frame}
-% \backmatter add this later
+\backmatter
 \end{document}
