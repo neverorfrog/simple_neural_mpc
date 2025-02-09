@@ -4,6 +4,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{multicol}
+\usepackage{subcaption}
 
 \titlebackground*{assets/background} %%%
 \title{MPC-PiNNs technique applied to Quadrotors}
@@ -41,7 +42,7 @@
                 \begin{cases}
                     \ddot{x} = -\Bigl(\cos\psi\, \sin\theta\, \cos\phi + \sin\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
                     \ddot{y} = -\Bigl(\sin\psi\, \sin\theta\, \cos\phi - \cos\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
-                    \ddot{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\
+                    \ddot{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\[1ex]
                     \ddot{\phi}   = \frac{\tau_{\phi}}{I_{x}} \\
                     \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}} \\
                     \ddot{\psi}   = \frac{\tau_{\psi}}{I_{z}} 
@@ -69,7 +70,7 @@
                     \dot{z} = v_{z}, \\[1ex]
                     \dot{v}_{x} = -\Bigl(\cos\psi\, \sin\theta\, \cos\phi + \sin\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
                     \dot{v}_{y} = -\Bigl(\sin\psi\, \sin\theta\, \cos\phi - \cos\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
-                    \dot{v}_{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\
+                    \dot{v}_{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\[1ex]
                     \dot{\phi} = ({\phi_{c} - \phi})/{\tau} \\
                     \dot{\theta} = ({\theta_{c} - \theta})/{\tau} \\
                     \dot{\psi} = ({\psi_{c} - \psi})/{\tau} 
@@ -139,11 +140,49 @@
 \begin{frame}{Structure}
     The data the we used to train our neural models come from simulation and
     some real world experiments. 
+    \vspace{1em}
     \begin{itemize}
         \item Generally speaking, we can describe each our dataset as a tuple in the form $\left\{[x_{t}, u_{t}], [x_{t+1}]\right\}$, were $x_{t}$ is the state of the system at time $t$, $u_{t}$ is the control input at time $t$ and $x_{t+1}$ is the state of the system at time $t+1$.
         \item For the baseline (\textit{simple-neural-network}), no constraints on the dataset form are required, while on the physics informed models the input needs to be \textbf{constant} in a sub-interval $[0, T]$.
     \end{itemize}
 \end{frame}
+
+\begin{frame}{Structure (2)}
+    \begin{columns}[T]
+        % Left Column: Two itemize lists
+        \begin{column}{0.5\textwidth}
+            The unicycle dataset it's composed by 500 trajectories, each composed by 1000 steps, where the inputs are maintained constant for the whole episode.
+            \vspace{1em} % Adjust vertical space between lists 
+        \end{column}
+        
+        % Right Column: Multicol environment with one itemize list
+        \begin{column}{0.5\textwidth}
+            \vspace{-2.6em}
+            \textbf{Unicycle Input Combinations:}
+            \begin{multicols}{2}
+                \begin{itemize}
+                \centering
+                \item $v > 0, w > 0$
+                \item $v > 0, w < 0$
+                \item $v < 0, w > 0$
+                \item $v < 0, w < 0$
+                \item $v > 0, w = 0$ 
+                \item $v < 0, w = 0$
+                \item $v = 0, w > 0$
+                \item $v = 0, w < 0$
+                \end{itemize}
+            \end{multicols}
+        \end{column}
+    \end{columns}
+    \vspace{1em}
+    For the quadrotor we have extracted data from ROS messages given directly by the robot and the simulation. We have defined 19 different types of trajectories that belong to 3 main categories:
+        \begin{itemize}
+            \item \textbf{horizontal circle}
+            \item \textbf{vertical circle} 
+            \item \textbf{lemniscate}
+        \end{itemize}
+\end{frame}
+
 \begin{frame}{Examples}
     \begin{columns}[c]
         % Left column: smaller image
@@ -163,18 +202,21 @@
 
 \begin{frame}{Problems}
     When extracting data from the real-world experiments (or the gazebo simulations), state and action \textbf{publishing rates} were a crucial aspect to take into account. 
+    \vspace{0.6em}
     \begin{itemize}
         \item The action publishing rate should be high enough to make the controller safe enough
         \item The state publishing rate should be high, but it couldn't be too high, for communication latency reasons, which would have made the use of the real crazyflie impossible
     \end{itemize}
+    \vspace{0.6em}
     These problems could be \textbf{partially mitigated} by using the gazebo simulator and setting ad-hoc publishing rates, or forcing the input to be constant (introducing a noisy approximation) for a certain amount of time in the real-world data.
 \end{frame}
-\section{Neural Network}
+\section{Standard Neural Network}
 \begin{frame}{Training Scheme}
     \begin{columns}[c]
       % Left Column: Text Description
       \begin{column}{0.55\textwidth}
         The multi-step training procedure is defined as follows:
+        \vspace{1em}
         \begin{itemize}
           \item Give in input the pair $(s_t, a_t)$ to the network
           \item Perform the integration of the output in the sample time $dt$
@@ -220,10 +262,9 @@
         % Right Column: Text and Equations
         \begin{column}{0.55\textwidth}
             Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
-            \vspace{1em}
+            \vspace{1.5em}
             \begin{align}
-                \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2, \\
-                \mathcal L(\theta)_{physics} &= \frac{1}{N} \sum_{i=1}^{N} (\nabla_{x} -  \textit{ode}(x, u, t) )^2,
+                \mathcal{L}(\theta) = \mathcal{L}_{\text{data}}(\theta) + \mathcal{L}_{\text{phy}}(\theta)
             \end{align}
         \end{column}
 
@@ -280,49 +321,127 @@
     \end{algorithmic}
     \end{frame}
 
-\section{Results and Problems Encountered}
-\begin{frame}{Dataset Generation}
-We have tried different strategies:
-\begin{itemize}
-    \item random velocity commands over the horizon
-    \item random velocity commands constant over the horizon
-\end{itemize}
-The system has been integrated with Euler or Runge-Kutta 4.
+\section{Results and Future Works}
+\begin{frame}{Unicycle Standard Net (1)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_circle.png}
+            \caption{MPC tracking with learned model}
+            \label{fig:mpc_derivative_circle_1}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_circle.png}
+            \caption{MPC tracking with nominal model}
+            \label{fig:mpc_derivative_circle_2}
+        \end{subfigure}
+        \caption{Circle comparison}
+        \label{fig:mpc_derivative_circle}
+    \end{figure}
 \end{frame}
 
-\begin{frame}{Drift Problem}
-        \begin{columns}[T] % Align columns at the top
-            % Left Column: Text
-            \begin{column}{0.55\textwidth}
-                After some training, we have tested our neural model along with the MPC with nice results (check video). However, we found that by having zero control inputs the network still moves the state somewhere else. We have tried to overcome this problem in some ways but with poor results:
-                \begin{itemize}
-                    \item Sample \(N\) points at the boundary during each epoch
-                    \item Add a penalty term related to the boundary condition
-                \end{itemize}
-            \end{column}
-            % Right Column: Image
-            \begin{column}{0.40\textwidth}
-                \centering
-                \includegraphics[width=\textwidth, keepaspectratio]{../report/assets/mlp_circle.jpg} % Replace with your image file
-                \vspace{1ex}
-                \footnotesize{PiNN-C vs Reference}
-            \end{column}
-        \end{columns}
-    \end{frame}
-\begin{frame}{Possible Local Minima}
-    \begin{columns}[T] % Align columns at the top
-        % Left Column: Text
-        \begin{column}{0.55\textwidth}
-            \vspace{1ex}
-            During each training experiment, we have found that all losses behave correctly but they remain stuck at some points even with few iterations. Also in this case we have tried extensively hyperparameter tuning without any solution to the problem.
-        \end{column}
-        % Right Column: Image
-        \begin{column}{0.40\textwidth}
+\begin{frame}{Unicycle Standard Net (2)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth,keepaspectratio]{../report/assets/loss.jpg}
-            \footnotesize{Loss Behavior}
-        \end{column}
-    \end{columns}
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_dritto.png}
+            \caption{Straight line velocity testing with neural model}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_dritto.png}
+            \caption{Straight line velocity testing with nominal model}
+        \end{subfigure}
+        \caption{Straight Line case comparison}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Quadrotor Standard Net}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/final_train/train_mlp_uav.jpg}
+            \caption{Train Loss}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/final_train/val_mlp_uav.jpg}
+            \caption{Validation Loss}
+        \end{subfigure}
+        \caption{Loss Behavior of the Quadrotor case}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Unicycle PiNN-C (1)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_pinn_circle.png}
+            \caption{MPC tracking with physics loss}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_circle.png}
+            \caption{MPC tracking without physics loss}
+        \end{subfigure}
+        \caption{Pinn prediction evaluation}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Unicycle PiNN-C (2)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_test_Vs_train_unicycle.jpg}
+            \caption{test and train loss for the imit component}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_tot_loss_unicycle.jpg}
+            \caption{train loss for the pinn-c model}
+        \end{subfigure}
+        \caption{Pinn loss evaluation for the unicycle}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Quadrotor PiNN-C}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_loss_drone_imit.jpg}
+            \caption{test and train loss for the imit component of the quadrotor model}
+            \label{fig:train_vs_test_pinn_drone}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_loss_drone_physics.jpg}
+            \caption{physics loss of the pinn-c model for the quadrotor}
+        \end{subfigure}
+        \caption{Pinn loss evaluation for the quadrotor}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Future Works}
+    Despite all the challenges that we have encountered, the results underscore the potential of using physics-informed models along with Model Predictive Control. We have some ideas to improve the performances and solve some of the problems:
+    \vspace{1em}
+    \begin{itemize}
+        \item \textbf{Reservoir computing} can be used to deal with unbalance and non-homogeneous input signal, while the output layers can be tuned in a physics informed fashion
+        \item \textbf{Double stage training} mechanism could be used for linearly connect multiple models
+        \item  \textbf{Moving average} technique in the training phase could be beneficial for the convergence of the network.
+    \end{itemize}
 \end{frame}
 \backmatter
 \end{document}
