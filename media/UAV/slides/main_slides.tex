@@ -134,6 +134,40 @@
     \end{columns}
   \end{frame}
 
+\section{Dataset}
+\begin{frame}{Structure}
+    The data the we used to train our neural models come from simulation and
+    some real world experiments. 
+    \begin{itemize}
+        \item Generally speaking, we can describe each our dataset as a tuple in the form $\left\{[x_{t}, u_{t}], [x_{t+1}]\right\}$, were $x_{t}$ is the state of the system at time $t$, $u_{t}$ is the control input at time $t$ and $x_{t+1}$ is the state of the system at time $t+1$.
+        \item For the baseline (\textit{simple-neural-network}), no constraints on the dataset form are required, while on the physics informed models the input needs to be \textbf{constant} in a sub-interval $[0, T]$.
+    \end{itemize}
+\end{frame}
+\begin{frame}{Examples}
+    \begin{columns}[c]
+        % Left column: smaller image
+        \begin{column}{0.4\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{../report/assets/final_train/data_uav.jpg}
+          \small{Quadrotor data}
+        \end{column}
+        % Right column: larger image
+        \begin{column}{0.6\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{../report/assets/final_train/data_uni.jpg}
+          \small{Unicycle data (PiNN)}
+        \end{column}
+      \end{columns}
+\end{frame}
+
+\begin{frame}{Problems}
+    When extracting data from the real-world experiments (or the gazebo simulations), state and action \textbf{publishing rates} were a crucial aspect to take into account. 
+    \begin{itemize}
+        \item The action publishing rate should be high enough to make the controller safe enough
+        \item The state publishing rate should be high, but it couldn't be too high, for communication latency reasons, which would have made the use of the real crazyflie impossible
+    \end{itemize}
+    These problems could be \textbf{partially mitigated} by using the gazebo simulator and setting ad-hoc publishing rates, or forcing the input to be constant (introducing a noisy approximation) for a certain amount of time in the real-world data.
+\end{frame}
 \section{Neural Network}
 \begin{frame}{Simple MLP}
     \begin{columns}[T] % align columns at the top
