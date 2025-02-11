@@ -1,14 +1,16 @@
 \documentclass{beamer}
 % \usepackage{beamerthemesplit} // Activate for custom appearance
 \usepackage{beamerthemesintef} % comment this line + everything with '%%%' if you don't have the theme installed
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multicol}
+\usepackage{subcaption}
 
 \titlebackground*{assets/background} %%%
 \title{MPC-PiNNs technique applied to Quadrotors}
 \subtitle{Elective in Robotics [UAV] Course Project}
 \course{Master's Degree in Artificial Intelligence and Robotics} %%%
-\author{{Authors}} %%%
-
-\IDnumber{matricole} %%%
+\author{{Bugli Eugenio}, {Di Marzo Gabriele}, {Maiorana Flavio}} %%%
 \date{Academic Year 2024/2025}
 
 \begin{document}
@@ -17,14 +19,45 @@
 \begin{frame}{Neural Model Predictive Control (NMPC)}
     In this work we have tried to combine Model Predictive Control along with PiNNs to trajectory tracking problem applied to quadrotors. We have used the Unicycle robot as simple test case for our experiments.
 \end{frame}
-\section{Robot Models}
+\section{Quadrotor Model}
 
-\begin{frame}{Quadorotor}
+\begin{frame}{Quadrotor Standard Model}
+    \begin{columns}[T] % Align columns at the top
+        % Left Column: Text
+        \begin{column}{0.45\textwidth}
+            \vspace{0.4cm}
+            Starting from the Translational \eqref{eq:tra_dyn} and Rotational Dynamics \eqref{eq:rot_dyn}, we have derived the simplified second order of the quadrotor.
+            \begin{align}
+                \label{eq:tra_dyn}
+                m \ddot{p} = f_{t} + f_{g} + f_{a} + f_{d} \\
+                \label{eq:rot_dyn}
+                J \ \dot{\omega} + \omega \times (J \ \omega) = \tau 
+            \end{align}
+        \end{column}
+        
+        % Right Column: Equation
+        \begin{column}{0.50\textwidth}
+            \vspace{-0.2cm}
+            \begin{align}
+                \begin{cases}
+                    \ddot{x} = -\Bigl(\cos\psi\, \sin\theta\, \cos\phi + \sin\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
+                    \ddot{y} = -\Bigl(\sin\psi\, \sin\theta\, \cos\phi - \cos\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
+                    \ddot{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\[1ex]
+                    \ddot{\phi}   = \frac{\tau_{\phi}}{I_{x}} \\
+                    \ddot{\theta} = \frac{\tau_{\theta}}{I_{y}} \\
+                    \ddot{\psi}   = \frac{\tau_{\psi}}{I_{z}} 
+                \end{cases}
+            \end{align}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Crazyflie Model}
     \begin{columns}[T] % Align columns at the top
         % Left Column: Text
         \begin{column}{0.45\textwidth}
             \vspace{0.7cm}
-            Since we have used the Crazyflie robot as reference, we have used a first order model because the robot takes as control inputs RPY desired poses rather than torques. This means that the output of the MPC gives us the RPY desired poses while the ODE model gives us the velocity commands.
+            Since we have used the Crazyflie as reference, the reference model is different with respect to the previous one. This is a consequence of how the firmware of the robot acts. There is a low level attitude controller that takes as inputs the RPY desired poses and maps them as control torques.
         \end{column}
         
         % Right Column: Equation
@@ -37,7 +70,7 @@
                     \dot{z} = v_{z}, \\[1ex]
                     \dot{v}_{x} = -\Bigl(\cos\psi\, \sin\theta\, \cos\phi + \sin\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
                     \dot{v}_{y} = -\Bigl(\sin\psi\, \sin\theta\, \cos\phi - \cos\psi\, \sin\phi\Bigr)\frac{T}{m}, \\
-                    \dot{v}_{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\
+                    \dot{v}_{z} = -\Bigl(\cos\theta\, \cos\phi\Bigr)\dfrac{T}{m} + g, \\[1ex]
                     \dot{\phi} = ({\phi_{c} - \phi})/{\tau} \\
                     \dot{\theta} = ({\theta_{c} - \theta})/{\tau} \\
                     \dot{\psi} = ({\psi_{c} - \psi})/{\tau} 
@@ -48,45 +81,179 @@
 \end{frame}
 
 \section{Model Predictive Control}
-\begin{frame}{Model Predictive Control}
-    This approach leads to good result for both the drone and unicycle models.
+\begin{frame}{MPC Structure}
+    We have used for both robots the following structure for the MPC:
     \begin{align}
         \min_{u(0), u(1), \dots, u(N-1)} \quad & \sum_{k=0}^{N-1} \ell(x(k), u(k)) + \ell_f(x(N)) \\
         \text{s.t.} \quad & x(k+1) = f(x(k), u(k)), \quad k = 0, \dots, N-1, \\
         & x(k) \in \mathcal{X}, \quad u(k) \in \mathcal{U}, \quad k = 0, \dots, N-1, \\
-        & x(0) = x_{\text{0}}
+        & x(0) = x_{\text{0}.}
     \end{align}
 \end{frame}
-\begin{frame}{Crazy-MPC}
-    Our objective is to minimize at each step the error with respect to the reference
-    trajectory, while also maintaining the module of the input actions as low as possible.
+
+
+\begin{frame}{MPC Cost Function}
+    % MPC Cost Function Block
+    \begin{block}{Cost Function}
+      \centering
+      \vspace{-1em} % Adjust this value as needed to reduce extra vertical space
+      \begin{align*}
+        \ell(x(k), u(k)) &= \sum_{k=0}^{N-1} \Bigl[  \sum_{x \in \mathcal{X}} W_{x(k)} \Bigl( x(k)_{\text{ref}} - x(k) \Bigr)^2 
+        + \sum_{u \in \mathcal{U}} W_u \, u^2 \Bigr], \\
+        \ell_{f}(x(N))      &= \sum_{x \in \mathcal{X}} W_{x(N)} \Bigl( x(N)_{\text{ref}} - x(N) \Bigr)^2 .
+      \end{align*}
+    \end{block}
+    
+    \vspace{-1em} % Adjust vertical spacing between blocks
+    
+    % Unicycle and Quadrotor Blocks aligned at top
+    \begin{columns}[t]
+      % Unicycle Block
+      \begin{column}{0.48\textwidth}
+        \begin{block}{Unicycle State \& Control}
+          \centering
+          \begin{equation*}
+            \begin{cases}
+              \mathcal{X} = \begin{bmatrix}x & y & \theta \end{bmatrix}^T,\\[1ex]
+              \mathcal{U} = \begin{bmatrix}v & \omega \end{bmatrix}^T.
+            \end{cases}
+          \end{equation*}
+        \end{block}
+      \end{column}
+      
+      % Quadrotor Block
+      \begin{column}{0.48\textwidth}
+        \begin{block}{Quadrotor State \& Control}
+          \centering
+          \begin{equation*}
+            \begin{cases}
+              \mathcal{X} = \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \end{bmatrix}^T,\\[1ex]
+              \mathcal{U} = \begin{bmatrix}\phi_c & \theta_c & \psi_c & T \end{bmatrix}^T.
+            \end{cases}
+          \end{equation*}
+        \end{block}
+      \end{column}
+    \end{columns}
+  \end{frame}
+
+\section{Dataset}
+\begin{frame}{Structure}
+    The data the we used to train our neural models come from simulation and
+    some real world experiments. 
+    \vspace{1em}
     \begin{itemize}
-        \item The \textbf{decision variables} are $(\phi_{c},\theta_{c},\psi_{c}, T)$ and the state of the robot
-        \item The \textbf{constraints} are related only to the decision variables
-        \item The cost function minimizes the distance between the state of the quadrotor and the reference trajectory at time $t_{k}$
+        \item Generally speaking, we can describe each our dataset as a tuple in the form $\left\{[x_{t}, u_{t}], [x_{t+1}]\right\}$, were $x_{t}$ is the state of the system at time $t$, $u_{t}$ is the control input at time $t$ and $x_{t+1}$ is the state of the system at time $t+1$.
+        \item For the baseline (\textit{simple-neural-network}), no constraints on the dataset form are required, while on the physics informed models the input needs to be \textbf{constant} in a sub-interval $[0, T]$.
     \end{itemize}
 \end{frame}
 
-\section{Neural Network}
-\begin{frame}{Simple MLP}
-    \begin{columns}[T] % align columns at the top
-        \begin{column}{0.50\textwidth}
-            The architecture is characterized by two hidden layers of 128 neurons and takes as input the current state and the action that I want to apply.
-            \vspace{1ex}
-            \begin{align}
-                \dot{x} &= f_{\theta}(x,u) \\
-                loss &= \frac{1}{k}\sum_{i=t}^{t+k} (\bar{s}_i - s_i)^2
-            \end{align}
-            The loss is computed as the MSE between the neural and the nominal evolutions of the state.
+\begin{frame}{Structure (2)}
+    \begin{columns}[T]
+        % Left Column: Two itemize lists
+        \begin{column}{0.5\textwidth}
+            The unicycle dataset it's composed by 500 trajectories, each composed by 1000 steps, where the inputs are maintained constant for some of them.
+            \vspace{1em} % Adjust vertical space between lists 
         \end{column}
-        \begin{column}{0.4\textwidth}
-            \centering
-            % First image on top
-            \includegraphics[width=\textwidth]{../report/assets/mlp_1.jpg} % replace with 
-            \includegraphics[width=\textwidth]{../report/assets/mlp_2.jpg} % replace with your second image file
-            \footnotesize{Evolution Trajectory}
+        
+        % Right Column: Multicol environment with one itemize list
+        \begin{column}{0.5\textwidth}
+            \vspace{-2.6em}
+            \textbf{Unicycle Input Combinations:}
+            \begin{multicols}{2}
+                \begin{itemize}
+                \centering
+                \item $v > 0, w > 0$
+                \item $v > 0, w < 0$
+                \item $v < 0, w > 0$
+                \item $v < 0, w < 0$
+                \item $v > 0, w = 0$ 
+                \item $v < 0, w = 0$
+                \item $v = 0, w > 0$
+                \item $v = 0, w < 0$
+                \end{itemize}
+            \end{multicols}
         \end{column}
     \end{columns}
+    \vspace{1em}
+    For the quadrotor we have extracted data from ROS messages given directly by the robot and the simulation. We have defined 19 different types of trajectories that belong to 3 main categories:
+        \begin{itemize}
+            \item \textbf{horizontal circle}
+            \item \textbf{vertical circle} 
+            \item \textbf{lemniscate}
+        \end{itemize}
+\end{frame}
+
+\begin{frame}{Examples}
+    \begin{columns}[c]
+        % Left column: smaller image
+        \begin{column}{0.4\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{../report/assets/final_train/data_uav.jpg}
+          \small{Quadrotor data}
+        \end{column}
+        % Right column: larger image
+        \begin{column}{0.6\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{../report/assets/final_train/data_uni.jpg}
+          \small{Unicycle data (PiNN)}
+        \end{column}
+      \end{columns}
+\end{frame}
+
+\begin{frame}{Problems}
+    When extracting data from the real-world experiments (or the gazebo simulations), state and action \textbf{publishing rates} were a crucial aspect to take into account. 
+    \vspace{0.6em}
+    \begin{itemize}
+        \item The action publishing rate should be high enough to make the controller safe enough
+        \item The state publishing rate should be high, but it couldn't be too high, for communication latency reasons, which would have made the use of the real crazyflie impossible
+    \end{itemize}
+    \vspace{0.6em}
+    These problems could be \textbf{partially mitigated} by using the gazebo simulator and setting ad-hoc publishing rates, or forcing the input to be constant (introducing a noisy approximation) for a certain amount of time in the real-world data.
+\end{frame}
+\section{Standard Neural Network}
+\begin{frame}{Training Scheme}
+    \begin{columns}[c]
+      % Left Column: Text Description
+      \begin{column}{0.55\textwidth}
+        The multi-step training procedure is defined as follows:
+        \vspace{1em}
+        \begin{itemize}
+          \item Give in input the pair $(s_t, a_t)$ to the network
+          \item Perform the integration of the output in the sample time $dt$
+          \item Add what we have to the input to obtain the new state $s_{t+1}$
+          \item Compute the \textbf{MSE} loss
+          \item Use the new state as the next input of the network
+        \end{itemize}
+      \end{column}
+      
+      % Right Column: Image
+      \begin{column}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../report/assets/mlp_1.jpg} % Replace with your image file
+      \end{column}
+    \end{columns}
+  \end{frame}
+
+\begin{frame}{Unicycle Network}
+
+    The neural network used to model the kinematic model of the unicycle is a simple MLP architecture with two hidden layers of 128 neurons.
+    The input is given by the concatenation of the current state and the current control inputs:
+    \begin{equation}
+        X = [x, y, \theta, v, \omega]
+    \end{equation}
+    while the output represents the dynamics of the system:
+    \begin{equation}
+        Y = [\dot{x}, \dot{y}, \dot{\theta}]
+    \end{equation}
+\end{frame}
+
+\begin{frame}{Quadrotor Network}
+    The quadrotor dynamics presents a more complex model, with a state $x \in R^9$ and control inputs $u \in R^4$. For approximating such dynamics with the defined training scheme, a larger network has been tested: we have increased the number of hidden layers up to 3 and the latent dimension from 128 to 256. However, the main problem during training is related to the generation of the data.
+\begin{align}
+    X &= \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \ |\ U \end{bmatrix}^T \\
+    U &= \begin{bmatrix} \phi_c & \theta_c & \psi_c & T \end{bmatrix}^T \\
+    Y &= \begin{bmatrix} \dot{x} & \dot{y} & \dot{z} & \dot{v_x} & \dot{v_y} & \dot{v_z} & \dot{\phi} & \dot{\theta} & \dot{\psi} \end{bmatrix}^T
+\end{align}
 \end{frame}
 
 \section{Physical Informed Neural Networks}
@@ -95,10 +262,9 @@
         % Right Column: Text and Equations
         \begin{column}{0.55\textwidth}
             Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
-            \vspace{1em}
+            \vspace{1.5em}
             \begin{align}
-                \mathcal{L}_{\text{data}}(\theta) &= \frac{1}{N_u} \sum_{i=1}^{N_u} \left| u_{\theta}(\mathbf{x}_i, t_i) - u^{\text{obs}}_i \right|^2, \\
-                \mathcal{L}_{\text{phys}}(\theta) &= \frac{1}{N_r} \sum_{j=1}^{N_r} \left| \mathcal{N}[u_{\theta}](\mathbf{x}_j, t_j) \right|^2,
+                \mathcal{L}(\theta) = \mathcal{L}_{\text{data}}(\theta) + \mathcal{L}_{\text{phy}}(\theta)
             \end{align}
         \end{column}
 
@@ -119,11 +285,15 @@
 \end{frame}
 \begin{frame}{PiNN with Controls}
     \begin{columns}[T]
-        % Right Column: Text and Equations
-        \begin{column}{0.55\textwidth}
-            The Pinn-C modifies the formulation of the pinn, by dividing the evolution into sub-transitions with constant input. The network takes as input $(x(0), \bar{u}, t)$. \\
-            \vspace{1ex}
-            \textbf{Pros}:
+        \begin{column}{0.45\textwidth}
+            The Pinn-C modifies the formulation of the pinn, by dividing the evolution into sub-transitions with constant input. The network takes as input $(x(0), \bar{u}, t)$.
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \vspace{-1em}
+            \includegraphics[width=\textwidth]{../report/assets/pinc_time.png}
+        \end{column}
+    \end{columns}
+    \textbf{Pros}:
             \begin{itemize}
                 \item it can handle larger time-steps with respect to the original formulation
                 \item can accept arbitrary starting conditions
@@ -132,61 +302,146 @@
             \begin{itemize}
                 \item relies heavily on the dataset 
             \end{itemize}
-        \end{column}
-
-        \begin{column}{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{../report/assets/pinc_time.png} % Replace with your image file
-            \vspace{1ex}
-            \includegraphics[width=0.9\textwidth]{../report/assets/pinnc_traj.jpg} % Replace
-            \footnotesize{Trajectory with PiNN-C}
-        \end{column}
-        
-    \end{columns}
 \end{frame}
-\section{Results and Problems Encountered}
-\begin{frame}{Dataset Generation}
-We have tried different strategies:
-\begin{itemize}
-    \item random velocity commands over the horizon
-    \item random velocity commands constant over the horizon
-\end{itemize}
-The system has been integrated with Euler or Runge-Kutta 4.
-\end{frame}
-
-\begin{frame}{Drift Problem}
-        \begin{columns}[T] % Align columns at the top
-            % Left Column: Text
-            \begin{column}{0.55\textwidth}
-                After some training, we have tested our neural model along with the MPC with nice results (check video). However, we found that by having zero control inputs the network still moves the state somewhere else. We have tried to overcome this problem in some ways but with poor results:
-                \begin{itemize}
-                    \item Sample \(N\) points at the boundary during each epoch
-                    \item Add a penalty term related to the boundary condition
-                \end{itemize}
-            \end{column}
-            % Right Column: Image
-            \begin{column}{0.40\textwidth}
-                \centering
-                \includegraphics[width=\textwidth, keepaspectratio]{../report/assets/mlp_circle.jpg} % Replace with your image file
-                \vspace{1ex}
-                \footnotesize{PiNN-C vs Reference}
-            \end{column}
-        \end{columns}
+\begin{frame}[fragile]{Training Scheme}
+    \textbf{Training Loop: Loss Calculation}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} \( X_{\text{data}}, y \)
+        \State \textbf{Initialize:} \( L \gets 0 \)
+        \State \textbf{Compute Predictions:} \( \hat{y} \gets \mathcal{M}(X_{\text{data}}) \)
+        \State \textbf{Update Loss with MSE:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \)
+        \State \textbf{Sample Input Data:} \( X \sim \mathcal{D} \)
+        \State \textbf{Calculate Gradient:} \( J \gets \nabla_X \theta \)
+        \State \textbf{Compute Analytical ODE:} \( \text{ode}(X) = f(X) \)
+        \State \textbf{Update Loss with ODE Term:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} \Bigl(\text{ode}(X) - \nabla_X \theta\Bigr)^2 \)
+        \State \textbf{Sample a Point:} \( X_{\text{point}} \sim \mathcal{D} \)
+        \State \textbf{Set to zero the Input:} \( X_{\text{input}} \gets 0 \)
+        \State \textbf{Update Loss with Boundary Term:} \( L \gets L + \frac{1}{n} \sum_{i=1}^{n} (X_i - \hat{y}_i)^2 \)
+        \State \textbf{Output:} Updated loss \( L \)
+    \end{algorithmic}
     \end{frame}
-\begin{frame}{Possible Local Minima}
-    \begin{columns}[T] % Align columns at the top
-        % Left Column: Text
-        \begin{column}{0.55\textwidth}
-            \vspace{1ex}
-            During each training experiment, we have found that all losses behave correctly but they remain stuck at some points even with few iterations. Also in this case we have tried extensively hyperparameter tuning without any solution to the problem.
-        \end{column}
-        % Right Column: Image
-        \begin{column}{0.40\textwidth}
+
+\section{Results and Future Works}
+\begin{frame}{Unicycle Standard Net (1)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth,keepaspectratio]{../report/assets/loss.jpg}
-            \footnotesize{Loss Behavior}
-        \end{column}
-    \end{columns}
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_circle.png}
+            \caption{MPC tracking with learned model}
+            \label{fig:mpc_derivative_circle_1}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_circle.png}
+            \caption{MPC tracking with nominal model}
+            \label{fig:mpc_derivative_circle_2}
+        \end{subfigure}
+        \caption{Circle comparison}
+        \label{fig:mpc_derivative_circle}
+    \end{figure}
 \end{frame}
-% \backmatter add this later
+
+\begin{frame}{Unicycle Standard Net (2)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_der_dritto.png}
+            \caption{Straight line velocity testing with neural model}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_nominal_dritto.png}
+            \caption{Straight line velocity testing with nominal model}
+        \end{subfigure}
+        \caption{Straight Line case comparison}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Quadrotor Standard Net}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/final_train/train_mlp_uav.jpg}
+            \caption{Train Loss}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/final_train/val_mlp_uav.jpg}
+            \caption{Validation Loss}
+        \end{subfigure}
+        \caption{Loss Behavior of the Quadrotor case}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Unicycle PiNN-C (1)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_pinn_circle.png}
+            \caption{MPC tracking with physics loss}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../../giuseppi/report/assets/mpc_neural_state_circle.png}
+            \caption{MPC tracking without physics loss}
+        \end{subfigure}
+        \caption{Pinn prediction evaluation}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Unicycle PiNN-C (2)}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_test_Vs_train_unicycle.jpg}
+            \caption{test and train loss for the imit component}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_tot_loss_unicycle.jpg}
+            \caption{train loss for the pinn-c model}
+        \end{subfigure}
+        \caption{Pinn loss evaluation for the unicycle}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Quadrotor PiNN-C}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_loss_drone_imit.jpg}
+            \caption{test and train loss for the imit component of the quadrotor model}
+            \label{fig:train_vs_test_pinn_drone}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../report/assets/pinn_loss_drone_physics.jpg}
+            \caption{physics loss of the pinn-c model for the quadrotor}
+        \end{subfigure}
+        \caption{Pinn loss evaluation for the quadrotor}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Future Works}
+    Despite all the challenges that we have encountered, the results underscore the potential of using physics-informed models along with Model Predictive Control. We have some ideas to improve the performances and solve some of the problems:
+    \vspace{1em}
+    \begin{itemize}
+        \item \textbf{Reservoir computing} can be used to deal with unbalance and non-homogeneous input signal, while the output layers can be tuned in a physics informed fashion
+        \item \textbf{Double stage training} mechanism could be used for linearly connect multiple models
+        \item  \textbf{Moving average} technique in the training phase could be beneficial for the convergence of the network.
+    \end{itemize}
+\end{frame}
+\backmatter
 \end{document}
