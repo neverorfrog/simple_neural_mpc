@@ -1,0 +1,79 @@
+<mxfile host="65bd71144e">
+    <diagram name="Pagina-1" id="f8n5Xo4w_C87NDhs8KYQ">
+        <mxGraphModel dx="1626" dy="923" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="11" value="`\int`" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="540.0012821577484" y="708.2496557099807" width="27.764635977889554" height="43.50909156708679" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Nominal Model" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontSize=20;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="260" y="700" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;fontSize=20;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="12" target="11">
+                    <mxGeometry width="140" relative="1" as="geometry">
+                        <mxPoint x="490" y="740" as="sourcePoint"/>
+                        <mxPoint x="630" y="800" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="480" y="730"/>
+                            <mxPoint x="480" y="730"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="`\dot x_k`" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=20;container=0;" vertex="1" connectable="0" parent="13">
+                    <mxGeometry x="-0.1567" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;fontSize=20;" edge="1" parent="1">
+                    <mxGeometry width="140" relative="1" as="geometry">
+                        <mxPoint x="570" y="730" as="sourcePoint"/>
+                        <mxPoint x="730" y="730" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="720" y="730"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="`x_{k+1}`" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=20;container=0;" vertex="1" connectable="0" parent="15">
+                    <mxGeometry x="-0.1183" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;fontSize=20;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="12">
+                    <mxGeometry width="140" relative="1" as="geometry">
+                        <mxPoint x="690" y="730" as="sourcePoint"/>
+                        <mxPoint x="170" y="750" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="690" y="670"/>
+                            <mxPoint x="90" y="670"/>
+                            <mxPoint x="90" y="730"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="`x_k`" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=20;container=0;" vertex="1" connectable="0" parent="17">
+                    <mxGeometry x="0.8404" y="3" relative="1" as="geometry">
+                        <mxPoint x="-39" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" value="Optimizer" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontSize=20;container=0;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="800" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;fontSize=20;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeWidth=1;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="19" target="12">
+                    <mxGeometry width="140" relative="1" as="geometry">
+                        <mxPoint x="380" y="800" as="sourcePoint"/>
+                        <mxPoint x="200" y="730" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="200" y="790"/>
+                            <mxPoint x="200" y="745"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="&lt;span style=&quot;background-color: rgb(251, 251, 251);&quot;&gt;`rpy_k^{des}`&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=20;container=0;" vertex="1" connectable="0" parent="20">
+                    <mxGeometry x="0.1448" relative="1" as="geometry">
+                        <mxPoint x="2" y="15" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

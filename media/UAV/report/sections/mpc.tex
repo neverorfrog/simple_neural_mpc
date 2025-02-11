@@ -94,8 +94,13 @@ According to this, the cost function terms are the following ones:
                                 \end{enumerate}  
 
 \subsection{Quadrotor}
-Our work is based on a Crazyflie, which is a versatile open source quadrotor that only weighs 27g and fits in the palm of your hand.
-This particular quadrotor is characterized by a firmware that takes as inputs roll, pitch and yaw desired poses instead of control torques. This happens because there is a low level attitude controller which performs this mapping for us. As a consequence, we have used a first order dynamic model for the MPC formulation.
+Our work is based on a Crazyflie, which is a versatile open source
+quadrotor that only weighs 27g and fits in the palm of your hand. This
+particular quadrotor is characterized by a firmware that takes as inputs
+roll, pitch and yaw desired poses instead of control torques. This happens
+because there is a low level attitude controller which performs this
+mapping for us. As a consequence, we have used a first order dynamic model
+for the MPC formulation, as in \cite{crazysim}.
 \begin{align}
     \label{eq:uav_first_order}
     \begin{cases}
@@ -110,12 +115,40 @@ This particular quadrotor is characterized by a firmware that takes as inputs ro
         \dot{\psi} = \frac{\psi_c - \psi}{\tau}\\ 
     \end{cases}  
 \end{align}
-In this models the state is composed by the cartesian position, the cartesian velocities and the roll pitch yaw angles, while the control inputs are composed by the desired poses relative to the roll, pitch, yaw angles and the thrust.
+In this models the state is composed by the cartesian position, the cartesian velocities and the roll pitch yaw angles.
 
 \begin{align}
     \label{eq:state_uav}
         \mathcal{X} &= \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \end{bmatrix}^T \\
         \label{eq:control_uav}
-        \mathcal{U} &= \begin{bmatrix}\phi_c & \theta_c & \psi_c & T \end{bmatrix}^T
 \end{align}
+
+The output of the MPC is the desired roll, pitch and yaw angles, which are
+then sent to the low level attitude controller of the Crazyflie, as shown in figure \ref{fig:quadrotor_mpc}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/mpc_control_loop.png}
+    \caption{MPC control scheme for the quadrotor}
+    \label{fig:quadrotor_mpc}
+\end{figure}
+
+The main difference to the traditional MPC scheme lies in the prediction model (yellow box), as summarized in figure \ref{fig:mpc_comparison}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{assets/nominal_model_structure.png}
+        \caption{Nominal model scheme}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{assets/pinn_structure.png}
+        \caption{Neural model scheme}
+    \end{subfigure}
+    \caption{Comparison between traditional and neural model schemes}
+    \label{fig:mpc_comparison}
+\end{figure}
+
 \newpage

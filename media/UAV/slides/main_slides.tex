@@ -57,7 +57,11 @@
         % Left Column: Text
         \begin{column}{0.45\textwidth}
             \vspace{0.7cm}
-            Since we have used the Crazyflie as reference, the reference model is different with respect to the previous one. This is a consequence of how the firmware of the robot acts. There is a low level attitude controller that takes as inputs the RPY desired poses and maps them as control torques.
+            Since we have used the Crazyflie as reference, the reference
+            model is different with respect to the previous one. This is a
+            consequence of how the firmware of the robot acts. There is a
+            low level attitude controller that takes as inputs the RPY
+            desired poses and maps them into control torques.
         \end{column}
         
         % Right Column: Equation
@@ -81,6 +85,35 @@
 \end{frame}
 
 \section{Model Predictive Control}
+
+
+\begin{frame}{MPC Structure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{../report/assets/mpc_control_loop.png}
+        \caption{MPC control scheme for the quadrotor}
+        \label{fig:quadrotor_mpc}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{MPC Structure}
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}{\textwidth}
+            \centering
+            \includegraphics[width=0.6\textwidth]{../report/assets/nominal_model_structure.png}
+            \caption{Nominal model scheme}
+        \end{subfigure}
+        \begin{subfigure}{\textwidth}
+            \centering
+            \includegraphics[width=0.6\textwidth]{../report/assets/pinn_structure.png}
+            \caption{Neural model scheme}
+        \end{subfigure}
+        \caption{Comparison between traditional and neural model schemes}
+        \label{fig:mpc_comparison}
+    \end{figure}
+\end{frame}
+
 \begin{frame}{MPC Structure}
     We have used for both robots the following structure for the MPC:
     \begin{align}
@@ -106,34 +139,6 @@
     
     \vspace{-1em} % Adjust vertical spacing between blocks
     
-    % Unicycle and Quadrotor Blocks aligned at top
-    \begin{columns}[t]
-      % Unicycle Block
-      \begin{column}{0.48\textwidth}
-        \begin{block}{Unicycle State \& Control}
-          \centering
-          \begin{equation*}
-            \begin{cases}
-              \mathcal{X} = \begin{bmatrix}x & y & \theta \end{bmatrix}^T,\\[1ex]
-              \mathcal{U} = \begin{bmatrix}v & \omega \end{bmatrix}^T.
-            \end{cases}
-          \end{equation*}
-        \end{block}
-      \end{column}
-      
-      % Quadrotor Block
-      \begin{column}{0.48\textwidth}
-        \begin{block}{Quadrotor State \& Control}
-          \centering
-          \begin{equation*}
-            \begin{cases}
-              \mathcal{X} = \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \end{bmatrix}^T,\\[1ex]
-              \mathcal{U} = \begin{bmatrix}\phi_c & \theta_c & \psi_c & T \end{bmatrix}^T.
-            \end{cases}
-          \end{equation*}
-        \end{block}
-      \end{column}
-    \end{columns}
   \end{frame}
 
 \section{Dataset}
@@ -251,7 +256,6 @@
     The quadrotor dynamics presents a more complex model, with a state $x \in R^9$ and control inputs $u \in R^4$. For approximating such dynamics with the defined training scheme, a larger network has been tested: we have increased the number of hidden layers up to 3 and the latent dimension from 128 to 256. However, the main problem during training is related to the generation of the data.
 \begin{align}
     X &= \begin{bmatrix}x & y & z & v_x & v_y & v_z & \phi & \theta & \psi \ |\ U \end{bmatrix}^T \\
-    U &= \begin{bmatrix} \phi_c & \theta_c & \psi_c & T \end{bmatrix}^T \\
     Y &= \begin{bmatrix} \dot{x} & \dot{y} & \dot{z} & \dot{v_x} & \dot{v_y} & \dot{v_z} & \dot{\phi} & \dot{\theta} & \dot{\psi} \end{bmatrix}^T
 \end{align}
 \end{frame}
