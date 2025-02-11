@@ -1,10 +1,10 @@
 Our scheme uses the MPC to generate optimal control inputs while the Neural part is used to model the dynamics and kinematics of our system.
 The Unicycle has been modeled with its kinematic model while for the quadrotor we have used its dynamic model.
 \subsection{Unicycle kinematic model}
-The kinematic model of the unicyle is a simplified representation of the movement of the vehicle
+The kinematic model of the unicycle is a simplified representation of the movement of the vehicle
 in terms of position and orientation. This simple model has been derived directly from the so-called "rolling without slipping constraint". 
 The state space is represented by the robot cartesian position and orientation $[x, y, \theta]$, while the input actions are represented by the driving and steering velocities the vehicle can assume $[v, \omega]$.
-The kinematic model of a unicyle robot it is described by the following equations:
+The kinematic model of a unicycle robot it is described by the following equations:
 \begin{align}
     \label{eq:unicycle}
     \begin{cases}
@@ -47,7 +47,7 @@ For the Rotational Dynamics, $\tau$ represents the torques in the body frame and
 where $L$ is the distance from the center of mass of each rotor.
 
 
-Given the previous equations, if we assume aereodynamics and gyroscopic effects to be negligible and that we have small roll and pitch angles, we can derive the simplified model fo the quadrotor:
+Given the previous equations, if we assume aereodynamics and gyroscopic effects to be negligible and that we have small roll and pitch angles, we can derive the simplified model for the quadrotor:
 \begin{align}
     \label{eq:uav_second_order}
     \begin{cases}

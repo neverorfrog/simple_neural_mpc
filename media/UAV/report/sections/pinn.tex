@@ -1,4 +1,4 @@
-\subsection{Physical Informed Neural Network: Introduction}
+\subsection{Physics-Informed Neural Network: Introduction}
 
 
 \begin{wrapfigure}{r}{0.4\textwidth} % 'r' for right alignment, 0.4\textwidth for image width
@@ -8,15 +8,15 @@
 \end{wrapfigure}
 
 Traditional methods for solving differential equations, such as finite element or finite difference methods, often require discretization of the domain and can be computationally expensive for high-dimensional problems.
-Physical Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
+Physics Informed Neural Networks (PiNNs) propose an alternative approach where the solution is approximated by a neural network that is trained not only on data but also by enforcing the underlying physical laws via the differential equations.
 This approach should be able to generalize outside the training data, fully respect the underlying physics. 
 With outside training data, we intend to say that the model generalize for sample that has never been shown \textbf{inside} the range of training. 
 \\ 
 
-The main loss component of the Pinn is call Physics Loss, and minimize the discrepancy between the dynamics of the system and the derivative of the network iteself. 
+The main loss component of the Pinn is called Physics Loss, and minimize the discrepancy between the dynamics of the system and the derivative of the network itself. 
 
 The standard PiNN models takes in input just the time $t$ at which we want to predict the evolution of the system. So, the output of the model is define as $x(t)$.
-For impose particular constrapngints, other losses are taken into account. Example of such loss are the so call \textit{Boundary loss} and the \textit{Initial loss}. 
+For impose particular constraints, other losses are taken into account. Example of such loss are the so call \textit{Boundary loss} and the \textit{Initial loss}. 
 The first one is used to impose the boundary condition of the system, while the second one is used to impose the initial condition of the system.
 \\
 
@@ -28,7 +28,7 @@ For this reason, we have used a extended version of the framework, namely, the P
 Such works shown as incorporate the control input on the prediction scheme, and has became the de-facto standard for model non-autonomus dynamic evolution (\cite{pinn-manipulators} \cite{ramp-net}).
 The Pinn-C model is analyze in the next section of this report.
 
-\subsection{Physical Informed Neural Network with Control}
+\subsection{Physics-Informed Neural Network with Control}
 
 
 The Pinn-c framework rely on the assumption that the input is constant over a sub-interval $[0, T_k]$.
@@ -75,7 +75,7 @@ we have generated 8 different combination for the Unicycle:
     \end{itemize}
 \end{multicols}
 
-The last possible combination, $v = 0, w = 0$, has been excluded from the dataset, as we model a extra loss term that relies on sampling.
+The last possible combination, $v = 0, w = 0$, has been excluded from the dataset, as we model a additional loss term that relies on sampling.
 The dataset has been generated using a Runge-Kutta 4th order method, and the sub-interval has been set to $0.1$ seconds. In order to approximate the real evolution of the system, 
 the PiNN-C framework needs different sample in which the input is constant. For this reason, after having discretize the input signal, we have taken up to 10 sub-evolution, leading to a reading of the trajectory of $0.02$ seconds.
 
@@ -91,7 +91,7 @@ The overall loss function $\mathcal{L}$ used is composed by the sum of two main 
 The first term defines the discrepancy between the prediction of the network and the observed data, while the second one specifies the correct modeling of the differential equation.
 Usually $\mathcal{L}_{data}$ is define as the mean squared error between the prediction and the ground truth, while $\mathcal{L}_{phy}$ is defined using the residual of the differential equation.
 
-For a correct implementation of the physics loss, a sampling strategy is required. The usage of the physics loss can be seen as a self-supervised learning instance, due the fact that does not rely on any dataset.
+For a correct implementation of the physics loss, a sampling strategy is required. The usage of the physics loss can be seen as a self-supervised learning instance, due to the fact that it does not rely on any dataset.
 
 At each iteration, the learner must sample a set of initial states, input and time from the relative distribution. Such samples are called "particles". 
 A great number of sampled particle is important for a correct evaluation of the loss function, as reported in the self-supervised learning literature. 
@@ -107,7 +107,7 @@ The \textit{ode} function is the same differential equation that we have introdu
 
 An extra term has been added, as a new boundary condition. When the model has 0 input, the network must became an identity function, returning the same input state as output. 
 This loss is defined as the mean squared error between the prediction and the input. Such application is possible only in the case of driftless system, as the unicycle. 
-In the case of quadrotor, we prefer to include sample with 0 input in the dataset and rely on the integration of the dynamic iteself for incorporate such prior. 
+In the case of quadrotor, we prefer to include sample with 0 input in the dataset and rely on the integration of the dynamic itself for incorporate such prior. 
 This approach result in a less robust model, due the fact that the network only see few example of such evolution. In the case of driftless system, such loss can be implemented using a sampling strategy.
 
 As in the physical loss, the input vector has been sampled in the correct range, then we manually zero the input element. 

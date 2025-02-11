@@ -15,7 +15,7 @@ In the standard neural network, a smaller number of neurons was sufficient for e
 the loss function. Having a smoother loss landscape is crucial for let the model mimic the real dynamics.
 
 In general, the combination of small hidden state and the absence of regularization terms in the standard models are 
-the reason for which the general nerual network framework is not able to approximate the underlying physics laws over the entire training workspace.
+the reason for which the general neural network framework is not able to approximate the underlying physics laws over the entire training workspace.
 
 
 \subsection{Standard neural network}
@@ -38,11 +38,11 @@ The multi-step training is a crucial step for a non-physics informed model to le
 Experiment in a single step prediction has shown that the displacement of the vehicle is to small for having a fine-grain error measurement. 
 
 \subsubsection{Consideration of the Dataset}
-As anticiapted before, the dataset for such approach do not require any particular constraint. This allow us to test standard normalization techniques
-and so robustify the model to different input scales. 
+As anticipated before, the dataset for such approach does not require any particular constraint. This allow us to test standard normalization techniques
+and so make the model more robust to different input scales. 
 For doing so, we used a min-max normalization over the input, but we can also incorporate over the MLP architecture a normalization layer, that increase the stability of the train.
 
-We prefered to use the layer norm in our experiment because such module do not require a preprocessing at inference time, before invoke the MPC framework.
+We preferred to use the layer norm in our experiment because such module do not require a preprocessing at inference time, before invoke the MPC framework.
 However, the normalization layer is still trained over the dataset, limiting the capacity of the network over range outside the training one. 
 
 \subsection{Unicycle Neural model}

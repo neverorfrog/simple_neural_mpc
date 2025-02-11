@@ -11,9 +11,9 @@ One of the main advantages of this control approach is the ability to handle mul
 
 \subsection{Cost function}
 Our objective is to minimize at each step the error with respect to the reference 
-trajectory, both in traslational and orientational dimension, while also maintaining the
+trajectory, both in translational and rotational dimension, while also maintaining the
 module of the input actions as low as possible. A terminal state term is present too,
-where the traslational and orientational errors of the last horizon step are tried to 
+where the translational and rotational errors of the last horizon step are tried to 
 be minimized. Thus, the cost function is composed by the following three terms:
 \begin{enumerate}
     \item \textbf{Spatial error}: at each step of the horizon, the squared errors over the state variables are summed together
@@ -27,7 +27,7 @@ be minimized. Thus, the cost function is composed by the following three terms:
                                     J_{sp_{N}} = W_{x} \sum_{i=0}^{n}x_{i_{N}}^2
                                    \end{equation}
                                    where $x_{i_{k}}$ it is the $i$-th component of the state vector at the last instant over the horizon
-    \item \textbf{Input}: it penalizes high values of input controls 
+    \item \textbf{Input}: it penalizes high magnitudes of input controls 
                                    \begin{equation}
                                         J_{u_{k}} = W_{u} \sum_{i=0}^{n}u_{i_{k}}^2
                                    \end{equation}
@@ -95,7 +95,7 @@ According to this, the cost function terms are the following ones:
 
 \subsection{Quadrotor}
 Our work is based on a Crazyflie, which is a versatile open source quadrotor that only weighs 27g and fits in the palm of your hand.
-This particular quadrotor is characterized by a firmware that takes as inputs roll, pitch and yaw desired poses instead of control torques. This happens beacuse there is a low level attitude controller which performs this mapping for us. As a consequence, we have used a first order dynamic model for the MPC formulation.
+This particular quadrotor is characterized by a firmware that takes as inputs roll, pitch and yaw desired poses instead of control torques. This happens because there is a low level attitude controller which performs this mapping for us. As a consequence, we have used a first order dynamic model for the MPC formulation.
 \begin{align}
     \label{eq:uav_first_order}
     \begin{cases}
@@ -110,7 +110,7 @@ This particular quadrotor is characterized by a firmware that takes as inputs ro
         \dot{\psi} = \frac{\psi_c - \psi}{\tau}\\ 
     \end{cases}  
 \end{align}
-In this models the state is composed by the cartesian position, the cartesian velocities and the roll pitch yaw angles, while the control inputs are composed by the desidered poses relative to the roll, pitch, yaw angles and the thrust.
+In this models the state is composed by the cartesian position, the cartesian velocities and the roll pitch yaw angles, while the control inputs are composed by the desired poses relative to the roll, pitch, yaw angles and the thrust.
 
 \begin{align}
     \label{eq:state_uav}

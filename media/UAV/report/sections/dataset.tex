@@ -21,15 +21,15 @@ details about this constraint are explored in the Pinn-section. \\
     \label{fig:data_uni}
   \end{figure}
 
-All the sintetic data has been obtained by integrating the system dynamics
+All the synthetic data has been obtained by integrating the system dynamics
 with a Runge-kutta 4th order method, while the real-world data has been
-extrapolated using the ROS interface of the quadrotor.
+extracted using the ROS interface.
 
 When extracting data from the real-world experiments (or the gazebo
 simulations), state and action publishing rates were a crucial aspect to
 take into account. Especially, when extracting data from the real drone
 executing a trajectory tracking routine by using an existing MPC controller
-implented by us, the action publishing rate should be high enough to make
+implemented by us, the action publishing rate should be high enough to make
 the controller safe enough. Similarly, the state publishing rate should be
 high, but it couldn't be too high, for communication latency reasons, which
 would have made the use of the real crazyflie impossible. These problems
